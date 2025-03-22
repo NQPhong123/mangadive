@@ -1,0 +1,8 @@
+<resources>
+<string name="app_name">MangaDive</string>
+
+<string name="facebook_app_id">1245204690940440</string>
+<string name="fb_login_protocol_scheme">fb1245204690940440</string>
+<string name="facebook_client_token">4ffabfd4d8ef5679a54cf48d29a9a4e9</string>
+
+</resources>

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "316433033492",
+    "project_id": "mangadive-b27ad",
+    "storage_bucket": "mangadive-b27ad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316433033492:android:92cc8c21d3aaf8d917fa01",
+        "android_client_info": {
+          "package_name": "com.example.mangadive"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "316433033492-5amr8cg5dbvnjmpkubd3k4flen0nq6bt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mangadive",
+            "certificate_hash": "0657edde8645730e4e46a2611d60d13f66814d68"
+          }
+        },
+        {
+          "client_id": "316433033492-e154t86h6a1o8q4osaooihtj9iadjk0u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBz83aGsEP4DLPLk9otWXjpTeDT5evqsls"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "316433033492-e154t86h6a1o8q4osaooihtj9iadjk0u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
