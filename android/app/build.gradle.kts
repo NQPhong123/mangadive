@@ -25,7 +25,7 @@ android {
         applicationId = "com.example.mangadive"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 24  // Firebase yêu cầu tối thiểu minSdk 24
+        minSdk = 23
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -57,4 +57,14 @@ dependencies {
 
     // Các thư viện Google khác nếu cần
     implementation("androidx.core:core-ktx:1.12.0")
+}
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.google.gms:google-services:4.4.0")
+    }
 }

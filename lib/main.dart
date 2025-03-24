@@ -1,18 +1,30 @@
 import 'package:flutter/material.dart';
-
 import 'package:firebase_core/firebase_core.dart';
-import 'package:mangadive/view/screens/home_sceen.dart';
+import 'package:mangadive/view/screens/home_screen.dart';
 import 'package:mangadive/view/screens/login_screen.dart.dart';
 import 'package:mangadive/view/screens/register_screen.dart';
+import 'package:mangadive/view/screens/admin/admin_screen.dart';
+import 'package:mangadive/view/screens/admin/add_manga_screen.dart';
+import 'package:mangadive/view/screens/admin/edit_manga_screen.dart';
+import 'package:mangadive/view/screens/admin/manage_users_screen.dart';
+import 'package:mangadive/utils/admin_guard.dart';
+import 'package:mangadive/models/manga.dart';
+import 'package:logging/logging.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((record) {
+    debugPrint('${record.level.name}: ${record.time}: ${record.message}');
+  });
+
+  final _logger = Logger('main');
 
   try {
     await Firebase.initializeApp();
-    print("✅ Firebase đã khởi tạo thành công!");
+    _logger.info("✅ Firebase đã khởi tạo thành công!");
   } catch (e) {
-    print("❌ Lỗi khi khởi tạo Firebase:::: $e");
+    _logger.severe("❌ Lỗi khi khởi tạo Firebase:::: $e");
   }
   runApp(const MyApp());
 }
@@ -27,7 +39,48 @@ class MyApp extends StatelessWidget {
       home: const LoginScreen(),
       routes: {
         '/register': (context) => const RegisterScreen(),
-        '/home': (context) => HomeScreen(),
+        '/home': (context) => const HomeScreen(),
+      },
+      onGenerateRoute: (settings) {
+        final routeName = settings.name;
+        if (routeName == null) return null;
+
+        // Kiểm tra quyền admin trước khi cho phép truy cập các route admin
+        if (routeName == '/admin' || routeName.startsWith('/admin/')) {
+          return MaterialPageRoute(
+            builder:
+                (context) => FutureBuilder<bool>(
+                  future: AdminGuard.canActivate(context),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+
+                    if (snapshot.data == true) {
+                      switch (routeName) {
+                        case '/admin':
+                          return const AdminScreen();
+                        case '/admin/add-manga':
+                          return const AddMangaScreen();
+                        case '/admin/edit-manga':
+                          return EditMangaScreen(
+                            manga: settings.arguments as Manga,
+                          );
+                        case '/admin/manage-users':
+                          return const ManageUsersScreen();
+                        default:
+                          return const AdminScreen();
+                      }
+                    }
+
+                    return const HomeScreen();
+                  },
+                ),
+          );
+        }
+        return null;
       },
     );
   }

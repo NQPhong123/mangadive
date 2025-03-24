@@ -1,50 +1,76 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mangadive/services/auth_service.dart';
+import 'package:logging/logging.dart';
 
 class SocialLogin extends StatelessWidget {
-  SocialLogin({super.key});
-  final AuthService authService = AuthService();
+  const SocialLogin({super.key});
+
+  static final _logger = Logger('SocialLogin');
+
+  Future<void> _handleGoogleSignIn(BuildContext context) async {
+    try {
+      final user = await AuthService().signInWithGoogle();
+
+      if (!context.mounted) return;
+
+      _logger.info(
+        'Đăng nhập Google thành công: ${user?.email ?? 'Không có email'}',
+      );
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (e) {
+      if (!context.mounted) return;
+      _logger.severe('Lỗi đăng nhập Google: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi đăng nhập Google: $e')));
+    }
+  }
+
+  Future<void> _handleFacebookSignIn(BuildContext context) async {
+    try {
+      final user = await AuthService().signInWithFacebook();
+
+      if (!context.mounted) return;
+
+      _logger.info(
+        'Đăng nhập Facebook thành công: ${user?.email ?? 'Không có email'}',
+      );
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (e) {
+      if (!context.mounted) return;
+      _logger.severe('Lỗi đăng nhập Facebook: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi đăng nhập Facebook: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        ElevatedButton(
-          onPressed: () async {
-            final user = await authService.signInWithGoogle();
-            if (user != null) {
-              print("Đăng nhập thành công: ${user.displayName}");
-              Navigator.pushReplacementNamed(context, '/home');
-            } else {
-              showErrorMessage(context, "Đăng nhập Google thất bại!");
-            }
-          },
-          child: SvgPicture.asset('assets/icons/icons8-google.svg', height: 24),
+        ElevatedButton.icon(
+          onPressed: () => _handleGoogleSignIn(context),
+          icon: const Icon(Icons.g_mobiledata),
+          label: const Text('Google'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black87,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
         ),
-        ElevatedButton(
-          onPressed: () async {
-            User? user = await authService.signInWithFacebook();
-            if (user != null) {
-              print("Đăng nhập Facebook thành công: ${user.displayName}");
-              Navigator.pushReplacementNamed(context, '/home');
-            } else {
-              showErrorMessage(context, "Đăng nhập Facebook thất bại!");
-            }
-          },
-          child: SvgPicture.asset(
-            'assets/icons/icons8-facebook-logo.svg',
-            height: 24,
+        ElevatedButton.icon(
+          onPressed: () => _handleFacebookSignIn(context),
+          icon: const Icon(Icons.facebook),
+          label: const Text('Facebook'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
       ],
-    );
-  }
-
-  void showErrorMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 }

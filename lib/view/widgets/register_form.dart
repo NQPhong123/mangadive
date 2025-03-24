@@ -1,138 +1,157 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:mangadive/services/auth_service.dart'; // Adjust the import path as necessary
-import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:mangadive/services/auth_service.dart';
+import 'package:mangadive/models/user.dart' as models;
+import 'package:logging/logging.dart';
 
 class RegisterForm extends StatefulWidget {
   const RegisterForm({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _RegisterFormState createState() => _RegisterFormState();
+  State<RegisterForm> createState() => _RegisterFormState();
 }
 
 class _RegisterFormState extends State<RegisterForm> {
-  final TextEditingController fullNameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final AuthService authService = AuthService();
-  bool _obscureText = true;
-  DateTime? _selectedDate;
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _authService = AuthService();
+  final _logger = Logger('RegisterForm');
+  bool _isLoading = false;
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _usernameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final user = await _authService.signUpUser(
+        email: _emailController.text,
+        password: _passwordController.text,
+        username: _usernameController.text,
+      );
+
+      if (user != null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Đăng ký thành công: ${user.email}')),
+          );
+          Navigator.of(context).pushReplacementNamed('/home');
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Đăng ký thất bại')));
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _logger.severe('Lỗi đăng ký: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("Full Name"),
-        TextField(
-          controller: fullNameController,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: "Enter your full name",
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        const Text("Email"),
-        TextField(
-          controller: emailController,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: "Enter your email",
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        const Text("Birth of Date"),
-        TextField(
-          readOnly: true,
-          onTap: () => _selectDate(context),
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            suffixIcon: const Icon(Icons.calendar_today),
-            hintText:
-                _selectedDate == null
-                    ? "Select your birth date"
-                    : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        const Text("Phone Number"),
-        IntlPhoneField(
-          controller: phoneController,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: "Enter your phone number",
-          ),
-          initialCountryCode: 'US',
-          onChanged: (phone) {
-            print(phone.completeNumber);
-          },
-        ),
-        const SizedBox(height: 16),
-
-        const Text("Set Password"),
-        TextField(
-          controller: passwordController,
-          obscureText: _obscureText,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            hintText: "Enter your password",
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscureText ? Icons.visibility : Icons.visibility_off,
-              ),
-              onPressed: () {
-                setState(() {
-                  _obscureText = !_obscureText;
-                });
-              },
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TextFormField(
+            controller: _usernameController,
+            decoration: const InputDecoration(
+              labelText: 'Tên người dùng',
+              border: OutlineInputBorder(),
             ),
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.all(16),
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () async {
-              User? user = await authService.signUp(
-                emailController.text,
-                passwordController.text,
-              );
-              if (user != null) {
-                print("🎉 Register successfully!");
-                Navigator.pop(context);
-              } else {
-                print("❌ Register failed!");
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Vui lòng nhập tên người dùng';
               }
+              return null;
             },
-            child: const Text("Register"),
           ),
-        ),
-      ],
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _emailController,
+            decoration: const InputDecoration(
+              labelText: 'Email',
+              border: OutlineInputBorder(),
+            ),
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Vui lòng nhập email';
+              }
+              if (!value.contains('@')) {
+                return 'Email không hợp lệ';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _passwordController,
+            decoration: const InputDecoration(
+              labelText: 'Mật khẩu',
+              border: OutlineInputBorder(),
+            ),
+            obscureText: true,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Vui lòng nhập mật khẩu';
+              }
+              if (value.length < 6) {
+                return 'Mật khẩu phải có ít nhất 6 ký tự';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _confirmPasswordController,
+            decoration: const InputDecoration(
+              labelText: 'Xác nhận mật khẩu',
+              border: OutlineInputBorder(),
+            ),
+            obscureText: true,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Vui lòng xác nhận mật khẩu';
+              }
+              if (value != _passwordController.text) {
+                return 'Mật khẩu không khớp';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _isLoading ? null : _register,
+            child:
+                _isLoading
+                    ? const CircularProgressIndicator()
+                    : const Text('Đăng ký'),
+          ),
+        ],
+      ),
     );
   }
 }
