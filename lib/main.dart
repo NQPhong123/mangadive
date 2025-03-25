@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:mangadive/view/screens/home_screen.dart';
-import 'package:mangadive/view/screens/login_screen.dart.dart';
-import 'package:mangadive/view/screens/register_screen.dart';
+import 'package:mangadive/routes/app_routes.dart';
+import 'package:mangadive/view/screens/user/login_logout/login_screen.dart.dart';
+import 'package:provider/provider.dart';
+import 'package:mangadive/controllers/auth_controller.dart'; // Import AuthController
+import 'package:mangadive/view/screens/user/home_screen.dart';
 import 'package:mangadive/view/screens/admin/admin_screen.dart';
 import 'package:mangadive/view/screens/admin/add_manga_screen.dart';
 import 'package:mangadive/view/screens/admin/edit_manga_screen.dart';
@@ -26,7 +28,17 @@ void main() async {
   } catch (e) {
     _logger.severe("❌ Lỗi khi khởi tạo Firebase:::: $e");
   }
-  runApp(const MyApp());
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => AuthController(),
+        ), // Cung cấp AuthController
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -37,10 +49,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: const LoginScreen(),
-      routes: {
-        '/register': (context) => const RegisterScreen(),
-        '/home': (context) => const HomeScreen(),
-      },
+      initialRoute: AppRoutes.login, // Màn hình khởi động là Login
+      routes: AppRoutes.routes,
       onGenerateRoute: (settings) {
         final routeName = settings.name;
         if (routeName == null) return null;

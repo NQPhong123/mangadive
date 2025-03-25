@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mangadive/services/auth_service.dart';
-import 'package:mangadive/models/user.dart' as models;
+//import 'package:mangadive/models/user.dart' as models;
 import 'package:logging/logging.dart';
+import 'package:mangadive/utils/validators.dart';
 
 class RegisterForm extends StatefulWidget {
   const RegisterForm({super.key});
@@ -114,15 +115,7 @@ class _RegisterFormState extends State<RegisterForm> {
               border: OutlineInputBorder(),
             ),
             obscureText: true,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Vui lòng nhập mật khẩu';
-              }
-              if (value.length < 6) {
-                return 'Mật khẩu phải có ít nhất 6 ký tự';
-              }
-              return null;
-            },
+            validator: (value) => Validators.validatePassword(value),
           ),
           const SizedBox(height: 16),
           TextFormField(

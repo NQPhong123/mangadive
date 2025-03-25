@@ -249,6 +249,11 @@ class AuthService {
     return null;
   }
 
+  // resetPassword
+  Future<void> resetPassword(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
   // Cập nhật thông tin user
   Future<void> updateUser(models.User user) async {
     try {

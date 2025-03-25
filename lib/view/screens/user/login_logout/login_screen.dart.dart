@@ -1,49 +1,56 @@
 import 'package:flutter/material.dart';
-import '../widgets/register_form.dart';
+import '../../../widgets/form/login_form.dart';
+import '../../../widgets/form/social_login.dart';
 
-class RegisterScreen extends StatelessWidget {
-  const RegisterScreen({super.key});
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: SingleChildScrollView(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Sign up",
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  "Sign in to your Account",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  "Create an account to continue!",
+                  "Enter your email and password to log in",
                   style: TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: 24),
-                const RegisterForm(),
+                const LoginForm(),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(child: Divider()),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Text("OR"),
+                    ),
+                    Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SocialLogin(),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Already have an account?"),
+                    const Text("Don't have an account?"),
                     TextButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/register');
                       },
                       child: const Text(
-                        "Login",
+                        "Sign Up",
                         style: TextStyle(color: Colors.blue),
                       ),
                     ),
