@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mangadive/controllers/auth_controller.dart';
+import 'package:mangadive/routes/app_routes.dart';
 import 'package:mangadive/utils/validators.dart';
 import 'package:provider/provider.dart';
 
@@ -59,7 +60,7 @@ class _LoginFormState extends State<LoginForm> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/forgot-password');
+                Navigator.pushNamed(context, AppRoutes.forgotPassword);
               },
               child: const Text(
                 'Quên mật khẩu?',

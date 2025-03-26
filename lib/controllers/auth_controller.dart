@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mangadive/routes/app_routes.dart';
 import 'package:mangadive/services/auth_service.dart';
 import 'package:logging/logging.dart';
 import 'package:mangadive/utils/validators.dart';
@@ -35,7 +36,7 @@ class AuthController extends ChangeNotifier {
         if (context.mounted) {
           Navigator.pushReplacementNamed(
             context,
-            user.isAdmin ? '/admin' : '/home',
+            user.isAdmin ? '/admin' : '/main-screen',
           );
         }
       } else {
@@ -88,6 +89,20 @@ class AuthController extends ChangeNotifier {
     }
 
     isLoading = false;
+    notifyListeners();
+  }
+
+  // đăng xuất tài khoản
+  Future<void> sigOut(BuildContext context) async {
+    await AuthService().signOut();
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Đã đăng xuất thành công")));
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.login,
+      (route) => false, // Xóa tất cả màn hình trước đó
+    );
     notifyListeners();
   }
 }

@@ -12,7 +12,7 @@
         </intent>
     </queries>
     <application
-        android:label="mangadive"
+        android:label="MangaDive"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <meta-data

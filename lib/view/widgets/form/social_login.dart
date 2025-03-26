@@ -16,7 +16,7 @@ class SocialLogin extends StatelessWidget {
       _logger.info(
         'Đăng nhập Google thành công: ${user?.email ?? 'Không có email'}',
       );
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/main-screen');
     } catch (e) {
       if (!context.mounted) return;
       _logger.severe('Lỗi đăng nhập Google: $e');
@@ -35,7 +35,7 @@ class SocialLogin extends StatelessWidget {
       _logger.info(
         'Đăng nhập Facebook thành công: ${user?.email ?? 'Không có email'}',
       );
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/main-screen');
     } catch (e) {
       if (!context.mounted) return;
       _logger.severe('Lỗi đăng nhập Facebook: $e');

@@ -93,27 +93,27 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey[400],
-        showUnselectedLabels: true,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_books_rounded),
-            label: 'Library',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
-            label: 'Profile',
-          ),
-        ],
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   type: BottomNavigationBarType.fixed,
+      //   selectedItemColor: Colors.blue,
+      //   unselectedItemColor: Colors.grey[400],
+      //   showUnselectedLabels: true,
+      //   items: const [
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.home_rounded),
+      //       label: 'Home',
+      //     ),
+      //     BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.bookmark),
+      //       label: 'bookmark',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.person_rounded),
+      //       label: 'Profile',
+      //     ),
+      //   ],
+      // ),
     );
   }
 
