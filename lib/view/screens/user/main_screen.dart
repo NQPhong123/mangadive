@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mangadive/view/screens/user/pages/home_screen.dart';
 
-import 'package:mangadive/view/screens/user/pages/account_screen.dart';
+import 'package:mangadive/view/screens/user/pages/account/account_screen.dart';
 
 import 'package:mangadive/view/widgets/navigation_bar/nav_bar.dart';
 

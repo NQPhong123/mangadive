@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mangadive/controllers/auth_controller.dart';
+import 'package:mangadive/view/screens/user/pages/account/edit_profile.dart';
 import 'package:provider/provider.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -18,13 +19,16 @@ class AccountScreen extends StatelessWidget {
         body: ListView(
           children: [
             UserAccountsDrawerHeader(
-              accountName: Text('25. Quốc Phong'),
+              accountName: Text('Khách'),
               accountEmail: Text('Cấp 1'),
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.orange,
                 child: Text(
                   'Q',
-                  style: TextStyle(fontSize: 24.0, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 24.0,
+                    color: const Color.fromARGB(255, 139, 8, 8),
+                  ),
                 ),
               ),
             ),
@@ -40,13 +44,15 @@ class AccountScreen extends StatelessWidget {
         ),
       );
     }
+    String userName = user?.displayName ?? ' ';
+
     // màn hình account user đã đăng nhập
     return Scaffold(
       appBar: AppBar(title: Text('Tài khoản'), centerTitle: true),
       body: ListView(
         children: [
           UserAccountsDrawerHeader(
-            accountName: Text('25. Quốc Phong'),
+            accountName: Text(userName),
             accountEmail: Text('Cấp 1'),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.orange,
@@ -59,7 +65,12 @@ class AccountScreen extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.person),
             title: Text('Thông tin tài khoản'),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => EditProfileScreen()),
+              );
+            },
           ),
           ListTile(
             leading: Icon(Icons.history),
