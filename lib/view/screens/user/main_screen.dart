@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mangadive/view/screens/user/pages/home_screen.dart';
+import 'package:mangadive/view/screens/home/home_screen.dart';
 
 import 'package:mangadive/view/screens/user/pages/account/account_screen.dart';
 

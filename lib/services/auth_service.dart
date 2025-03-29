@@ -3,12 +3,12 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mangadive/models/user.dart' as models;
+import 'package:mangadive/constants/app_constants.dart';
 import 'package:logging/logging.dart';
 
 class AuthService {
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final String userCollection = 'users';
   final _logger = Logger('AuthService');
 
   // register account with email and password
@@ -61,12 +61,17 @@ class AuthService {
   // Lấy user theo ID
   Future<models.User?> getUserById(String uid) async {
     try {
-      final doc = await _firestore.collection('users').doc(uid).get();
-      if (!doc.exists) return null;
-
-      final data = doc.data()!;
-      data['id'] = doc.id; // Thêm id vào data
-      return models.User.fromJson(data);
+      final doc = await _firestore
+          .collection(AppConstants.usersCollection)
+          .doc(uid)
+          .get();
+      if (doc.exists) {
+        return models.User.fromMap({
+          'id': doc.id,
+          ...doc.data()!,
+        });
+      }
+      return null;
     } catch (e) {
       _logger.severe('Lỗi khi lấy user by ID: $e');
       return null;
@@ -74,11 +79,11 @@ class AuthService {
   }
 
   // Đăng ký user mới
-  Future<models.User?> signUpUser({
-    required String email,
-    required String password,
-    required String username,
-  }) async {
+  Future<models.User?> signUpUser(
+    String email,
+    String password,
+    String username,
+  ) async {
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -90,18 +95,19 @@ class AuthService {
           id: userCredential.user!.uid,
           email: email,
           username: username,
-          roles: ['user'], // Mặc định role là user
+          avatarUrl: '',
+          roles: ['user'],
+          favoriteMangas: [],
+          readingHistory: [],
           createdAt: DateTime.now(),
           lastLoginAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
 
-        await _firestore.collection('users').doc(user.id).set({
-          'email': user.email,
-          'username': user.username,
-          'roles': user.roles,
-          'createdAt': user.createdAt,
-          'lastLoginAt': user.lastLoginAt,
-        });
+        await _firestore
+            .collection(AppConstants.usersCollection)
+            .doc(user.id)
+            .set(user.toMap());
 
         _logger.info('Đã tạo user mới: ${user.email}');
         return user;
@@ -126,9 +132,11 @@ class AuthService {
 
       if (userCredential.user != null) {
         await _firestore
-            .collection('users')
+            .collection(AppConstants.usersCollection)
             .doc(userCredential.user!.uid)
-            .update({'lastLoginAt': DateTime.now()});
+            .update({
+          'last_login_at': FieldValue.serverTimestamp(),
+        });
 
         return await getUserById(userCredential.user!.uid);
       }
@@ -154,28 +162,33 @@ class AuthService {
 
       final userCredential = await _auth.signInWithCredential(credential);
       if (userCredential.user != null) {
-        final userDoc =
-            await _firestore
-                .collection('users')
-                .doc(userCredential.user!.uid)
-                .get();
+        final userDoc = await _firestore
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .get();
 
         if (!userDoc.exists) {
           final user = models.User(
             id: userCredential.user!.uid,
             email: userCredential.user!.email!,
             username: userCredential.user!.displayName ?? 'User',
+            avatarUrl: userCredential.user!.photoURL ?? '',
             roles: ['user'],
+            favoriteMangas: [],
+            readingHistory: [],
             createdAt: DateTime.now(),
             lastLoginAt: DateTime.now(),
+            updatedAt: DateTime.now(),
           );
 
           await _firestore.collection('users').doc(user.id).set({
             'email': user.email,
             'username': user.username,
+            'avatarUrl': user.avatarUrl,
             'roles': user.roles,
             'createdAt': user.createdAt,
             'lastLoginAt': user.lastLoginAt,
+            'updatedAt': user.updatedAt,
           });
 
           return user;
@@ -207,28 +220,33 @@ class AuthService {
 
         final userCredential = await _auth.signInWithCredential(credential);
         if (userCredential.user != null) {
-          final userDoc =
-              await _firestore
-                  .collection('users')
-                  .doc(userCredential.user!.uid)
-                  .get();
+          final userDoc = await _firestore
+              .collection('users')
+              .doc(userCredential.user!.uid)
+              .get();
 
           if (!userDoc.exists) {
             final user = models.User(
               id: userCredential.user!.uid,
               email: userCredential.user!.email!,
               username: userCredential.user!.displayName ?? 'User',
+              avatarUrl: userCredential.user!.photoURL ?? '',
               roles: ['user'],
+              favoriteMangas: [],
+              readingHistory: [],
               createdAt: DateTime.now(),
               lastLoginAt: DateTime.now(),
+              updatedAt: DateTime.now(),
             );
 
             await _firestore.collection('users').doc(user.id).set({
               'email': user.email,
               'username': user.username,
+              'avatarUrl': user.avatarUrl,
               'roles': user.roles,
               'createdAt': user.createdAt,
               'lastLoginAt': user.lastLoginAt,
+              'updatedAt': user.updatedAt,
             });
 
             return user;
@@ -257,7 +275,10 @@ class AuthService {
   // Cập nhật thông tin user
   Future<void> updateUser(models.User user) async {
     try {
-      await _firestore.collection('users').doc(user.id).update(user.toJson());
+      await _firestore
+          .collection(AppConstants.usersCollection)
+          .doc(user.id)
+          .update(user.toMap());
       _logger.info('Đã cập nhật user: ${user.email}');
     } catch (e) {
       _logger.severe('Lỗi khi cập nhật user: $e');
@@ -298,9 +319,13 @@ class AuthService {
     final user = await getCurrentUser();
     if (user == null) throw Exception('Chưa đăng nhập');
 
-    final updatedHistory = Map<String, DateTime>.from(user.readingHistory);
-    updatedHistory[mangaId] = DateTime.now();
+    final now = DateTime.now();
+    final historyEntry = {
+      'manga_id': mangaId,
+      'timestamp': now.toIso8601String(),
+    };
 
+    final updatedHistory = [...user.readingHistory, historyEntry];
     final updatedUser = user.copyWith(readingHistory: updatedHistory);
     await updateUser(updatedUser);
   }
@@ -311,8 +336,8 @@ class AuthService {
       final querySnapshot = await _firestore.collection('users').get();
       return querySnapshot.docs.map((doc) {
         final data = doc.data();
-        data['id'] = doc.id; // Thêm id vào data
-        return models.User.fromJson(data);
+        data['id'] = doc.id;
+        return models.User.fromMap(data);
       }).toList();
     } catch (e) {
       _logger.severe('Lỗi khi lấy danh sách users: $e');

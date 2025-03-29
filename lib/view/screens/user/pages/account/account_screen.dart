@@ -7,18 +7,18 @@ import 'package:provider/provider.dart';
 class AccountScreen extends StatelessWidget {
   AccountScreen({super.key});
 
-  User? user = FirebaseAuth.instance.currentUser;
-
   @override
   Widget build(BuildContext context) {
     final authController = Provider.of<AuthController>(context);
+    final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
       //người dùng chưa đăng nhập thì hiển thị màn hình này
       return Scaffold(
-        appBar: AppBar(title: Text('Tài khoản'), centerTitle: true),
+        appBar: AppBar(title: const Text('Tài khoản'), centerTitle: true),
         body: ListView(
           children: [
-            UserAccountsDrawerHeader(
+            const UserAccountsDrawerHeader(
               accountName: Text('Khách'),
               accountEmail: Text('Cấp 1'),
               currentAccountPicture: CircleAvatar(
@@ -27,15 +27,14 @@ class AccountScreen extends StatelessWidget {
                   'Q',
                   style: TextStyle(
                     fontSize: 24.0,
-                    color: const Color.fromARGB(255, 139, 8, 8),
+                    color: Color.fromARGB(255, 139, 8, 8),
                   ),
                 ),
               ),
             ),
-
             ListTile(
-              leading: Icon(Icons.login),
-              title: Text('Đăng nhập'),
+              leading: const Icon(Icons.login),
+              title: const Text('Đăng nhập'),
               onTap: () {
                 Navigator.pushNamed(context, '/login');
               },
@@ -44,17 +43,18 @@ class AccountScreen extends StatelessWidget {
         ),
       );
     }
-    String userName = user?.displayName ?? ' ';
+
+    String userName = user.displayName ?? ' ';
 
     // màn hình account user đã đăng nhập
     return Scaffold(
-      appBar: AppBar(title: Text('Tài khoản'), centerTitle: true),
+      appBar: AppBar(title: const Text('Tài khoản'), centerTitle: true),
       body: ListView(
         children: [
           UserAccountsDrawerHeader(
             accountName: Text(userName),
-            accountEmail: Text('Cấp 1'),
-            currentAccountPicture: CircleAvatar(
+            accountEmail: const Text('Cấp 1'),
+            currentAccountPicture: const CircleAvatar(
               backgroundColor: Colors.orange,
               child: Text(
                 'Q',
@@ -63,8 +63,8 @@ class AccountScreen extends StatelessWidget {
             ),
           ),
           ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Thông tin tài khoản'),
+            leading: const Icon(Icons.person),
+            title: const Text('Thông tin tài khoản'),
             onTap: () {
               Navigator.push(
                 context,
@@ -73,35 +73,35 @@ class AccountScreen extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: Icon(Icons.history),
-            title: Text('Lịch sử đọc truyện'),
+            leading: const Icon(Icons.history),
+            title: const Text('Lịch sử đọc truyện'),
             onTap: () {},
           ),
           ListTile(
-            leading: Icon(Icons.account_balance_wallet),
-            title: Text('Linh thạch'),
+            leading: const Icon(Icons.account_balance_wallet),
+            title: const Text('Linh thạch'),
             onTap: () {},
           ),
           ListTile(
-            leading: Icon(Icons.notifications),
-            title: Text('Thông báo của bạn'),
+            leading: const Icon(Icons.notifications),
+            title: const Text('Thông báo của bạn'),
             onTap: () {},
           ),
           ListTile(
-            leading: Icon(Icons.lock),
-            title: Text('Đổi mật khẩu'),
+            leading: const Icon(Icons.lock),
+            title: const Text('Đổi mật khẩu'),
             onTap: () {},
           ),
           ListTile(
-            leading: Icon(Icons.description),
-            title: Text('Điều khoản sử dụng'),
+            leading: const Icon(Icons.description),
+            title: const Text('Điều khoản sử dụng'),
             onTap: () {},
           ),
           ListTile(
-            leading: Icon(Icons.exit_to_app),
-            title: Text('Đăng xuất'),
+            leading: const Icon(Icons.exit_to_app),
+            title: const Text('Đăng xuất'),
             onTap: () {
-              authController.sigOut(context);
+              authController.signOut(context);
             },
           ),
         ],

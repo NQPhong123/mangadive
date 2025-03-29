@@ -36,7 +36,7 @@ class AuthController extends ChangeNotifier {
         if (context.mounted) {
           Navigator.pushReplacementNamed(
             context,
-            user.isAdmin ? '/admin' : '/main-screen',
+            AppRoutes.mainScreen,
           );
         }
       } else {
@@ -78,14 +78,18 @@ class AuthController extends ChangeNotifier {
 
     try {
       await _authService.resetPassword(email);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Email đặt lại mật khẩu đã được gửi")),
-      );
-      Navigator.pop(context); // Quay lại màn hình đăng nhập
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Email đặt lại mật khẩu đã được gửi")),
+        );
+        Navigator.pop(context); // Quay lại màn hình đăng nhập
+      }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Lỗi: $e")));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Lỗi: $e")),
+        );
+      }
     }
 
     isLoading = false;
@@ -93,16 +97,18 @@ class AuthController extends ChangeNotifier {
   }
 
   // đăng xuất tài khoản
-  Future<void> sigOut(BuildContext context) async {
-    await AuthService().signOut();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Đã đăng xuất thành công")));
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      AppRoutes.login,
-      (route) => false, // Xóa tất cả màn hình trước đó
-    );
+  Future<void> signOut(BuildContext context) async {
+    await _authService.signOut();
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Đã đăng xuất thành công")));
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.login,
+        (route) => false, // Xóa tất cả màn hình trước đó
+      );
+    }
     notifyListeners();
   }
 }

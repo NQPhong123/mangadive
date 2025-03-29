@@ -4,86 +4,88 @@ class User {
   final String id;
   final String email;
   final String username;
+  final String avatarUrl;
   final List<String> roles;
+  final List<String> favoriteMangas;
+  final List<Map<String, dynamic>> readingHistory;
   final DateTime createdAt;
   final DateTime lastLoginAt;
-  final List<String> favoriteMangas;
-  final Map<String, DateTime> readingHistory;
-  final String? photoUrl;
+  final DateTime updatedAt;
 
-  User({
+  const User({
     required this.id,
     required this.email,
     required this.username,
+    required this.avatarUrl,
     required this.roles,
+    required this.favoriteMangas,
+    required this.readingHistory,
     required this.createdAt,
     required this.lastLoginAt,
-    this.favoriteMangas = const [],
-    this.readingHistory = const {},
-    this.photoUrl,
+    required this.updatedAt,
   });
 
   bool get isAdmin => roles.contains('admin');
+
+  factory User.fromMap(Map<String, dynamic> map) {
+    return User(
+      id: map['id'] as String,
+      email: map['email'] as String,
+      username: map['username'] as String,
+      avatarUrl: map['avatar_url'] as String? ?? '',
+      roles: List<String>.from(map['roles'] ?? ['user']),
+      favoriteMangas: List<String>.from(map['favorite_mangas'] ?? []),
+      readingHistory:
+          List<Map<String, dynamic>>.from(map['reading_history'] ?? []),
+      createdAt: (map['created_at'] as Timestamp).toDate(),
+      lastLoginAt: (map['last_login_at'] as Timestamp).toDate(),
+      updatedAt: (map['updated_at'] as Timestamp).toDate(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'email': email,
+      'username': username,
+      'avatar_url': avatarUrl,
+      'roles': roles,
+      'favorite_mangas': favoriteMangas,
+      'reading_history': readingHistory,
+      'created_at': Timestamp.fromDate(createdAt),
+      'last_login_at': Timestamp.fromDate(lastLoginAt),
+      'updated_at': Timestamp.fromDate(updatedAt),
+    };
+  }
 
   User copyWith({
     String? id,
     String? email,
     String? username,
+    String? avatarUrl,
     List<String>? roles,
+    List<String>? favoriteMangas,
+    List<Map<String, dynamic>>? readingHistory,
     DateTime? createdAt,
     DateTime? lastLoginAt,
-    List<String>? favoriteMangas,
-    Map<String, DateTime>? readingHistory,
-    String? photoUrl,
+    DateTime? updatedAt,
   }) {
     return User(
       id: id ?? this.id,
       email: email ?? this.email,
       username: username ?? this.username,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
       roles: roles ?? this.roles,
-      createdAt: createdAt ?? this.createdAt,
-      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
       favoriteMangas: favoriteMangas ?? this.favoriteMangas,
       readingHistory: readingHistory ?? this.readingHistory,
-      photoUrl: photoUrl ?? this.photoUrl,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'email': email,
-      'username': username,
-      'roles': roles,
-      'createdAt': createdAt,
-      'lastLoginAt': lastLoginAt,
-      'favoriteMangas': favoriteMangas,
-      'readingHistory': readingHistory.map(
-        (key, value) => MapEntry(key, Timestamp.fromDate(value)),
-      ),
-      'photoUrl': photoUrl,
-    };
-  }
-
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      username: json['username'] as String,
-      roles: List<String>.from(json['roles'] ?? []),
-      createdAt: (json['createdAt'] as Timestamp).toDate(),
-      lastLoginAt: (json['lastLoginAt'] as Timestamp).toDate(),
-      favoriteMangas: List<String>.from(json['favoriteMangas'] ?? []),
-      readingHistory: Map<String, DateTime>.from(
-        (json['readingHistory'] ?? {}).map(
-          (key, value) => MapEntry(key, (value as Timestamp).toDate()),
-        ),
-      ),
-      photoUrl: json['photoUrl'] as String?,
+      createdAt: createdAt ?? this.createdAt,
+      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
   @override
   String toString() {
-    return 'User(id: $id, email: $email, username: $username, roles: $roles)';
+    return 'User(id: $id, email: $email, username: $username, avatarUrl: $avatarUrl)';
   }
 }

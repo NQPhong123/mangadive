@@ -70,22 +70,20 @@ class _LoginFormState extends State<LoginForm> {
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed:
-                authController.isLoading
-                    ? null
-                    : () {
-                      if (_formKey.currentState!.validate()) {
-                        authController.login(
-                          context,
-                          _emailController.text,
-                          _passwordController.text,
-                        );
-                      }
-                    },
-            child:
-                authController.isLoading
-                    ? const CircularProgressIndicator()
-                    : const Text('Đăng nhập'),
+            onPressed: authController.isLoading
+                ? null
+                : () {
+                    if (_formKey.currentState!.validate()) {
+                      authController.login(
+                        context,
+                        _emailController.text,
+                        _passwordController.text,
+                      );
+                    }
+                  },
+            child: authController.isLoading
+                ? const CircularProgressIndicator()
+                : const Text('Đăng nhập'),
           ),
         ],
       ),

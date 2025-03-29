@@ -2,57 +2,118 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Manga {
   final String id;
-  final String title;
+  final String name;
   final String description;
-  final String coverImage;
   final List<String> genres;
-  final String author;
-  final int viewCount;
+  final String status;
+  final int totalChapters;
+  final int latestChapter;
+  final int views;
+  final int follows;
+  final double voteScore;
+  final int voteCount;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final List<String> chapters;
+  final String coverUrl;
 
   Manga({
     required this.id,
-    required this.title,
+    required this.name,
     required this.description,
-    required this.coverImage,
     required this.genres,
-    required this.author,
-    this.viewCount = 0,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    this.chapters = const [],
-  }) : createdAt = createdAt ?? DateTime.now(),
-       updatedAt = updatedAt ?? DateTime.now();
+    required this.status,
+    required this.totalChapters,
+    required this.latestChapter,
+    required this.views,
+    required this.follows,
+    required this.voteScore,
+    required this.voteCount,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.coverUrl,
+  });
 
-  Map<String, dynamic> toJson() {
+  factory Manga.fromMap(Map<String, dynamic> map) {
+    try {
+      return Manga(
+        id: map['id'] as String? ?? '',
+        name: map['name'] as String? ?? '',
+        description: map['description'] as String? ?? '',
+        genres: List<String>.from(map['genres'] as List? ?? []),
+        status: map['status'] as String? ?? 'ongoing',
+        totalChapters: map['total_chapters'] as int? ?? 0,
+        latestChapter: map['latest_chapter'] as int? ?? 0,
+        views: map['views'] as int? ?? 0,
+        follows: map['follows'] as int? ?? 0,
+        voteScore: (map['vote_score'] as num?)?.toDouble() ?? 0.0,
+        voteCount: map['vote_count'] as int? ?? 0,
+        createdAt: map['created_at'] is Timestamp
+            ? (map['created_at'] as Timestamp).toDate()
+            : DateTime.parse(map['created_at'] as String? ??
+                DateTime.now().toIso8601String()),
+        updatedAt: map['updated_at'] is Timestamp
+            ? (map['updated_at'] as Timestamp).toDate()
+            : DateTime.parse(map['updated_at'] as String? ??
+                DateTime.now().toIso8601String()),
+        coverUrl: map['cover_url'] as String? ?? '',
+      );
+    } catch (e) {
+      print('Lỗi khi chuyển đổi dữ liệu manga: $e');
+      print('Dữ liệu gốc: $map');
+      rethrow;
+    }
+  }
+
+  Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'title': title,
+      'name': name,
       'description': description,
-      'coverImage': coverImage,
       'genres': genres,
-      'author': author,
-      'viewCount': viewCount,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'updatedAt': Timestamp.fromDate(updatedAt),
-      'chapters': chapters,
+      'status': status,
+      'total_chapters': totalChapters,
+      'latest_chapter': latestChapter,
+      'views': views,
+      'follows': follows,
+      'vote_score': voteScore,
+      'vote_count': voteCount,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+      'cover_url': coverUrl,
     };
   }
 
-  factory Manga.fromJson(Map<String, dynamic> json) {
+  Manga copyWith({
+    String? id,
+    String? name,
+    String? description,
+    List<String>? genres,
+    String? status,
+    int? totalChapters,
+    int? latestChapter,
+    int? views,
+    int? follows,
+    double? voteScore,
+    int? voteCount,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    String? coverUrl,
+  }) {
     return Manga(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String,
-      coverImage: json['coverImage'] as String,
-      genres: List<String>.from(json['genres']),
-      author: json['author'] as String,
-      viewCount: json['viewCount'] as int,
-      createdAt: (json['createdAt'] as Timestamp).toDate(),
-      updatedAt: (json['updatedAt'] as Timestamp).toDate(),
-      chapters: List<String>.from(json['chapters']),
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      genres: genres ?? this.genres,
+      status: status ?? this.status,
+      totalChapters: totalChapters ?? this.totalChapters,
+      latestChapter: latestChapter ?? this.latestChapter,
+      views: views ?? this.views,
+      follows: follows ?? this.follows,
+      voteScore: voteScore ?? this.voteScore,
+      voteCount: voteCount ?? this.voteCount,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      coverUrl: coverUrl ?? this.coverUrl,
     );
   }
 }

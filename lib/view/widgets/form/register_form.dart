@@ -37,9 +37,9 @@ class _RegisterFormState extends State<RegisterForm> {
 
     try {
       final user = await _authService.signUpUser(
-        email: _emailController.text,
-        password: _passwordController.text,
-        username: _usernameController.text,
+        _emailController.text,
+        _passwordController.text,
+        _usernameController.text,
       );
 
       if (user != null) {
@@ -138,10 +138,9 @@ class _RegisterFormState extends State<RegisterForm> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: _isLoading ? null : _register,
-            child:
-                _isLoading
-                    ? const CircularProgressIndicator()
-                    : const Text('Đăng ký'),
+            child: _isLoading
+                ? const CircularProgressIndicator()
+                : const Text('Đăng ký'),
           ),
         ],
       ),
