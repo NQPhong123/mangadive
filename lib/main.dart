@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:mangadive/routes/app_routes.dart';
 import 'package:mangadive/constants/app_constants.dart';
-
 import 'package:mangadive/view/screens/user/main_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:mangadive/controllers/auth_controller.dart'; // Import AuthController
@@ -36,14 +35,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppConstants.appName,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
+    return MultiProvider(
+      providers: [
+        Provider<AuthController>(
+          create: (_) =>
+              AuthController(), // Initialize your AuthController here
+        ),
+        // Add other providers here if needed in the future
+      ],
+      child: MaterialApp(
+        title: AppConstants.appName,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+        ),
+        initialRoute: AppRoutes.home,
+        onGenerateRoute: AppRoutes.generateRoute,
       ),
-      initialRoute: AppRoutes.home,
-      onGenerateRoute: AppRoutes.generateRoute,
     );
   }
 }

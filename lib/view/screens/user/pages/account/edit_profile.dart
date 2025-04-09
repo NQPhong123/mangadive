@@ -24,7 +24,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: const Text(
           "Chỉnh sửa thông tin",
           style: TextStyle(color: Colors.black),
         ),
@@ -38,7 +38,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
+              const Center(
                 child: Stack(
                   children: [
                     CircleAvatar(
@@ -61,7 +61,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               buildTextField("Tên", nameController),
               buildTextField("Email", emailController, enabled: false),
               buildDropdown("Giới tính", ["Nam", "Nữ"], selectedGender, (
@@ -69,7 +69,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ) {
                 setState(() => selectedGender = value);
               }),
-
               SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
@@ -81,7 +80,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     "Lưu",
                     style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
@@ -156,11 +155,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             items:
                 // chuyển từ List<String> sang List<DropdownMenuItem<String>>
                 options.map((String option) {
-                  return DropdownMenuItem<String>(
-                    value: option,
-                    child: Text(option, style: TextStyle(color: Colors.black)),
-                  );
-                }).toList(),
+              return DropdownMenuItem<String>(
+                value: option,
+                child: Text(option, style: TextStyle(color: Colors.black)),
+              );
+            }).toList(),
           ),
         ),
       ),
