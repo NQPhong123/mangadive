@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:logging/logging.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:mangadive/routes/app_routes.dart';
 import 'package:mangadive/constants/app_constants.dart';
 import 'package:mangadive/view/screens/user/main_screen.dart';
@@ -10,23 +14,33 @@ import 'package:mangadive/view/screens/admin/manage_users_screen.dart';
 import 'package:mangadive/utils/admin_guard.dart';
 import 'package:mangadive/models/manga.dart';
 import 'package:logging/logging.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Configure logging
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
     debugPrint('${record.level.name}: ${record.time}: ${record.message}');
   });
-
-  final _logger = Logger('main');
-
+  
+  final logger = Logger('Main');
+  
   try {
+    // Initialize Firebase
     await Firebase.initializeApp();
-    _logger.info("✅ Firebase đã khởi tạo thành công!");
+    
+    // Initialize Firebase App Check
+    await FirebaseAppCheck.instance.activate(
+      // Use debug provider for development
+      androidProvider: AndroidProvider.debug,
+      appleProvider: AppleProvider.debug,
+    );
+    
+    logger.info('Firebase initialized successfully');
   } catch (e) {
-    _logger.severe("❌ Lỗi khi khởi tạo Firebase:::: $e");
+    logger.severe('Failed to initialize Firebase: $e');
   }
-
+  
   runApp(const MyApp());
 }
 

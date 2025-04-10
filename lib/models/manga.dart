@@ -2,60 +2,75 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Manga {
   final String id;
-  final String name;
+  final String title;
+  final String titleLowercase;
   final String description;
-  final List<String> genres;
+  final String coverImage;
+  final String author;
+  final String artist;
   final String status;
-  final int totalChapters;
-  final int latestChapter;
-  final int views;
-  final int follows;
-  final double voteScore;
-  final int voteCount;
+  final List<String> genres;
+  final int totalViews;
+  final int totalFollowers;
+  final double averageRating;
+  final bool isPremium;
+  final double price;
+  final int lastChapterNumber;
+  final int popularityScore;
+  final List<String> searchKeywords;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final String coverUrl;
 
   Manga({
     required this.id,
-    required this.name,
+    required this.title,
+    required this.titleLowercase,
     required this.description,
-    required this.genres,
+    required this.coverImage,
+    required this.author,
+    required this.artist,
     required this.status,
-    required this.totalChapters,
-    required this.latestChapter,
-    required this.views,
-    required this.follows,
-    required this.voteScore,
-    required this.voteCount,
+    required this.genres,
+    required this.totalViews,
+    required this.totalFollowers,
+    required this.averageRating,
+    required this.isPremium,
+    required this.price,
+    required this.lastChapterNumber,
+    required this.popularityScore,
+    required this.searchKeywords,
     required this.createdAt,
     required this.updatedAt,
-    required this.coverUrl,
   });
 
   factory Manga.fromMap(Map<String, dynamic> map) {
     try {
       return Manga(
         id: map['id'] as String? ?? '',
-        name: map['name'] as String? ?? '',
+        title: map['title'] as String? ?? '',
+        titleLowercase: map['title_lowercase'] as String? ?? '',
         description: map['description'] as String? ?? '',
-        genres: List<String>.from(map['genres'] as List? ?? []),
+        coverImage: map['coverImage'] as String? ?? '',
+        author: map['author'] as String? ?? '',
+        artist: map['artist'] as String? ?? '',
         status: map['status'] as String? ?? 'ongoing',
-        totalChapters: map['total_chapters'] as int? ?? 0,
-        latestChapter: map['latest_chapter'] as int? ?? 0,
-        views: map['views'] as int? ?? 0,
-        follows: map['follows'] as int? ?? 0,
-        voteScore: (map['vote_score'] as num?)?.toDouble() ?? 0.0,
-        voteCount: map['vote_count'] as int? ?? 0,
-        createdAt: map['created_at'] is Timestamp
-            ? (map['created_at'] as Timestamp).toDate()
-            : DateTime.parse(map['created_at'] as String? ??
+        genres: List<String>.from(map['genres'] as List? ?? []),
+        totalViews: map['totalViews'] as int? ?? 0,
+        totalFollowers: map['totalFollowers'] as int? ?? 0,
+        averageRating: (map['averageRating'] as num?)?.toDouble() ?? 0.0,
+        isPremium: map['isPremium'] as bool? ?? false,
+        price: (map['price'] as num?)?.toDouble() ?? 0.0,
+        lastChapterNumber: map['lastChapterNumber'] as int? ?? 0,
+        popularityScore: map['popularity_score'] as int? ?? 0,
+        searchKeywords: List<String>.from(map['search_keywords'] as List? ?? []),
+        createdAt: map['createdAt'] is Timestamp
+            ? (map['createdAt'] as Timestamp).toDate()
+            : DateTime.parse(map['createdAt'] as String? ??
                 DateTime.now().toIso8601String()),
-        updatedAt: map['updated_at'] is Timestamp
-            ? (map['updated_at'] as Timestamp).toDate()
-            : DateTime.parse(map['updated_at'] as String? ??
+        updatedAt: map['updatedAt'] is Timestamp
+            ? (map['updatedAt'] as Timestamp).toDate()
+            : DateTime.parse(map['updatedAt'] as String? ??
                 DateTime.now().toIso8601String()),
-        coverUrl: map['cover_url'] as String? ?? '',
       );
     } catch (e) {
       print('Lỗi khi chuyển đổi dữ liệu manga: $e');
@@ -64,56 +79,76 @@ class Manga {
     }
   }
 
+  factory Manga.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data['id'] = doc.id;
+    return Manga.fromMap(data);
+  }
+
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'name': name,
+      'title': title,
+      'title_lowercase': titleLowercase,
       'description': description,
-      'genres': genres,
+      'coverImage': coverImage,
+      'author': author,
+      'artist': artist,
       'status': status,
-      'total_chapters': totalChapters,
-      'latest_chapter': latestChapter,
-      'views': views,
-      'follows': follows,
-      'vote_score': voteScore,
-      'vote_count': voteCount,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
-      'cover_url': coverUrl,
+      'genres': genres,
+      'totalViews': totalViews,
+      'totalFollowers': totalFollowers,
+      'averageRating': averageRating,
+      'isPremium': isPremium,
+      'price': price,
+      'lastChapterNumber': lastChapterNumber,
+      'popularity_score': popularityScore,
+      'search_keywords': searchKeywords,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': Timestamp.fromDate(updatedAt),
     };
   }
 
   Manga copyWith({
     String? id,
-    String? name,
+    String? title,
+    String? titleLowercase,
     String? description,
-    List<String>? genres,
+    String? coverImage,
+    String? author,
+    String? artist,
     String? status,
-    int? totalChapters,
-    int? latestChapter,
-    int? views,
-    int? follows,
-    double? voteScore,
-    int? voteCount,
+    List<String>? genres,
+    int? totalViews,
+    int? totalFollowers,
+    double? averageRating,
+    bool? isPremium,
+    double? price,
+    int? lastChapterNumber,
+    int? popularityScore,
+    List<String>? searchKeywords,
     DateTime? createdAt,
     DateTime? updatedAt,
-    String? coverUrl,
   }) {
     return Manga(
       id: id ?? this.id,
-      name: name ?? this.name,
+      title: title ?? this.title,
+      titleLowercase: titleLowercase ?? this.titleLowercase,
       description: description ?? this.description,
-      genres: genres ?? this.genres,
+      coverImage: coverImage ?? this.coverImage,
+      author: author ?? this.author,
+      artist: artist ?? this.artist,
       status: status ?? this.status,
-      totalChapters: totalChapters ?? this.totalChapters,
-      latestChapter: latestChapter ?? this.latestChapter,
-      views: views ?? this.views,
-      follows: follows ?? this.follows,
-      voteScore: voteScore ?? this.voteScore,
-      voteCount: voteCount ?? this.voteCount,
+      genres: genres ?? this.genres,
+      totalViews: totalViews ?? this.totalViews,
+      totalFollowers: totalFollowers ?? this.totalFollowers,
+      averageRating: averageRating ?? this.averageRating,
+      isPremium: isPremium ?? this.isPremium,
+      price: price ?? this.price,
+      lastChapterNumber: lastChapterNumber ?? this.lastChapterNumber,
+      popularityScore: popularityScore ?? this.popularityScore,
+      searchKeywords: searchKeywords ?? this.searchKeywords,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      coverUrl: coverUrl ?? this.coverUrl,
     );
   }
 }

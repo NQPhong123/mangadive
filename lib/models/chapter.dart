@@ -4,48 +4,49 @@ class Chapter {
   final String id;
   final String mangaId;
   final int chapterNumber;
-  final List<Map<String, dynamic>> pages;
-  final int views;
-  final int likes;
   final DateTime createdAt;
-  final DateTime updatedAt;
+  final int likes;
+  final List<ChapterPage> pages;
 
   Chapter({
     required this.id,
     required this.mangaId,
     required this.chapterNumber,
-    required this.pages,
-    required this.views,
-    required this.likes,
     required this.createdAt,
-    required this.updatedAt,
+    required this.likes,
+    required this.pages,
   });
 
   factory Chapter.fromMap(Map<String, dynamic> map) {
     return Chapter(
-      id: map['id'] as String,
-      mangaId: map['manga_id'] as String,
-      chapterNumber: map['chapter_number'] as int,
-      pages: List<Map<String, dynamic>>.from(
-        (map['pages'] as List).map((x) => Map<String, dynamic>.from(x)),
-      ),
-      views: map['views'] as int,
-      likes: map['likes'] as int,
-      createdAt: DateTime.parse(map['created_at'] as String),
-      updatedAt: DateTime.parse(map['updated_at'] as String),
+      id: map['id'] as String? ?? '',
+      mangaId: map['mangaId'] as String? ?? '',
+      chapterNumber: map['chapter_number'] as int? ?? 0,
+      createdAt: map['created_at'] is Timestamp
+          ? (map['created_at'] as Timestamp).toDate()
+          : DateTime.parse(map['created_at'] as String? ??
+              DateTime.now().toIso8601String()),
+      likes: map['likes'] as int? ?? 0,
+      pages: (map['pages'] as List<dynamic>?)
+              ?.map((e) => ChapterPage.fromMap(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
+  }
+
+  factory Chapter.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data['id'] = doc.id;
+    return Chapter.fromMap(data);
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'manga_id': mangaId,
+      'mangaId': mangaId,
       'chapter_number': chapterNumber,
-      'pages': pages,
-      'views': views,
+      'created_at': Timestamp.fromDate(createdAt),
       'likes': likes,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'pages': pages.map((p) => p.toMap()).toList(),
     };
   }
 
@@ -53,21 +54,17 @@ class Chapter {
     String? id,
     String? mangaId,
     int? chapterNumber,
-    List<Map<String, dynamic>>? pages,
-    int? views,
-    int? likes,
     DateTime? createdAt,
-    DateTime? updatedAt,
+    int? likes,
+    List<ChapterPage>? pages,
   }) {
     return Chapter(
       id: id ?? this.id,
       mangaId: mangaId ?? this.mangaId,
       chapterNumber: chapterNumber ?? this.chapterNumber,
-      pages: pages ?? this.pages,
-      views: views ?? this.views,
-      likes: likes ?? this.likes,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+      likes: likes ?? this.likes,
+      pages: pages ?? this.pages,
     );
   }
 }

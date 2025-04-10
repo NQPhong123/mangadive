@@ -7,6 +7,9 @@ import 'package:mangadive/utils/string_utils.dart';
 import 'package:mangadive/view/screens/manga/manga_read_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_collection_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
+import 'package:mangadive/controllers/auth_controller.dart';
+import 'package:mangadive/routes/app_routes.dart';
 
 class MangaDetailScreen extends StatefulWidget {
   final String mangaId;
@@ -25,6 +28,8 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
   bool _isLoading = true;
   Manga? _manga;
   List<Chapter> _chapters = [];
+  bool _isFollowing = false;
+  bool _isFollowingLoading = false;
 
   @override
   void initState() {
@@ -35,30 +40,71 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
   Future<void> _loadMangaData() async {
     try {
       setState(() => _isLoading = true);
-      print('Loading manga data with ID: ${widget.mangaId}');
-
       final manga = await _mangaController.getManga(widget.mangaId);
-      final chapters = await _mangaController.getMangaChapters(widget.mangaId);
-
-      print('Loaded manga: ${manga?.name}');
-      print('Loaded chapters: ${chapters.length}');
-
-      if (mounted) {
-        setState(() {
-          _manga = manga;
-          _chapters = chapters;
-          _isLoading = false;
-        });
+      final chapters = await _mangaController.getChapters(widget.mangaId);
+      
+      if (manga != null) {
+        print('Loaded manga: ${manga.title}');
+        if (mounted) {
+          setState(() {
+            _manga = manga;
+            _chapters = chapters;
+            _isLoading = false;
+          });
+        }
+      } else {
+        throw Exception(AppConstants.errorLoadingManga);
       }
-    } catch (e, stackTrace) {
-      print('Error loading manga data: $e');
-      print('Stack trace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppConstants.errorLoadingManga)),
+          SnackBar(content: Text(e.toString())),
         );
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  void _readManga(int chapterNumber) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MangaReadScreen(
+          mangaId: _manga!.id,
+          chapterId: chapterNumber.toString(),
+        ),
+      ),
+    );
+  }
+
+  void _toggleFollow() async {
+    try {
+      setState(() => _isFollowingLoading = true);
+      final authController = Provider.of<AuthController>(context, listen: false);
+      final userId = authController.currentUser?.id;
+
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vui lòng đăng nhập để theo dõi truyện')),
+        );
+        return;
+      }
+
+      if (_isFollowing) {
+        await _mangaController.unfollowManga(userId, _manga!.id);
+      } else {
+        await _mangaController.followManga(userId, _manga!.id);
+      }
+
+      setState(() {
+        _isFollowing = !_isFollowing;
+        _isFollowingLoading = false;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi: $e')),
+      );
+      setState(() => _isFollowingLoading = false);
     }
   }
 
@@ -85,13 +131,56 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
             expandedHeight: 300,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: CachedNetworkImage(
-                imageUrl: _manga!.coverUrl,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => const Center(
-                  child: CircularProgressIndicator(),
-                ),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
+              background: Stack(
+                children: [
+                  CachedNetworkImage(
+                    imageUrl: _manga!.coverImage,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    errorWidget: (context, url, error) => const Icon(Icons.error),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: 70,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.8),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 16,
+                    left: 16,
+                    right: 16,
+                    child: Text(
+                      _manga!.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 16,
+                    left: 8,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                ],
               ),
             ),
             actions: [
@@ -116,7 +205,7 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _manga!.name,
+                    _manga!.title,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -131,137 +220,23 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildInfoItem(
-                        Icons.remove_red_eye,
-                        StringUtils.formatNumber(_manga!.views),
-                        'Lượt xem',
-                      ),
-                      _buildInfoItem(
-                        Icons.favorite,
-                        StringUtils.formatNumber(_manga!.follows),
-                        'Theo dõi',
-                      ),
-                      _buildInfoItem(
-                        Icons.star,
-                        _manga!.voteScore.toStringAsFixed(1),
-                        'Đánh giá',
-                      ),
-                    ],
-                  ),
+                  _buildStats(),
                   const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _chapters.isNotEmpty
-                              ? () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => MangaReadScreen(
-                                        mangaId: widget.mangaId,
-                                        chapterId: _chapters.first.id,
-                                      ),
-                                    ),
-                                  );
-                                }
-                              : null,
-                          icon: const Icon(Icons.play_arrow),
-                          label: const Text('Đọc ngay'),
-                        ),
-                      ),
-                    ],
-                  ),
+                  _buildActions(),
                   const SizedBox(height: 24),
                   const Text(
-                    'Danh sách chapter',
+                    'Thông tin',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  if (_chapters.isEmpty)
-                    const Center(
-                      child: Text('Chưa có chapter nào'),
-                    )
-                  else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _chapters.length,
-                      itemBuilder: (context, index) {
-                        final chapter = _chapters[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            leading: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  chapter.chapterNumber.toString(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            title: Text(
-                              StringUtils.getChapterTitle(
-                                  chapter.chapterNumber.toString()),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            subtitle: Text(
-                              StringUtils.formatDate(chapter.createdAt),
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.remove_red_eye,
-                                  size: 16,
-                                  color: Colors.grey[600],
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  StringUtils.formatNumber(chapter.views),
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MangaReadScreen(
-                                    mangaId: widget.mangaId,
-                                    chapterId: chapter.id,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    ),
+                  const SizedBox(height: 12),
+                  _buildInfo(),
+                  const SizedBox(height: 24),
+                  _buildDescription(),
+                  const SizedBox(height: 24),
+                  _buildChapterList(),
                 ],
               ),
             ),
@@ -271,31 +246,217 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
     );
   }
 
-  Widget _buildInfoItem(IconData icon, String text, String label) {
+  Widget _buildStats() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildStat(
+            Icons.remove_red_eye,
+            StringUtils.formatNumber(_manga!.totalViews),
+            'Lượt xem',
+          ),
+          _buildStat(
+            Icons.favorite,
+            StringUtils.formatNumber(_manga!.totalFollowers),
+            'Theo dõi',
+          ),
+          _buildStat(
+            Icons.star,
+            _manga!.averageRating.toStringAsFixed(1),
+            'Đánh giá',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStat(IconData icon, String value, String label) {
     return Column(
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16),
-            const SizedBox(width: 4),
-            Text(
-              text,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
+        Icon(icon, color: Colors.blue),
         const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
         Text(
           label,
           style: TextStyle(
-            color: Colors.grey[600],
             fontSize: 12,
+            color: Colors.grey[600],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildActions() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () {
+                if (_chapters.isNotEmpty) {
+                  _readManga(_chapters.first.chapterNumber);
+                }
+              },
+              icon: const Icon(Icons.menu_book),
+              label: Text(_chapters.isNotEmpty
+                  ? AppConstants.readFromStart
+                  : AppConstants.noImage),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: _isFollowingLoading ? null : _toggleFollow,
+            icon: _isFollowingLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(
+                    _isFollowing ? Icons.favorite : Icons.favorite_border,
+                    color: _isFollowing ? Colors.red : null,
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfo() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Thông tin',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow('Tác giả', _manga!.author),
+          const Divider(),
+          _buildInfoRow('Họa sĩ', _manga!.artist),
+          const Divider(),
+          _buildInfoRow('Trạng thái', _formatStatus(_manga!.status)),
+          const Divider(),
+          _buildInfoRow('Thể loại', _manga!.genres.join(', ')),
+        ],
+      ),
+    );
+  }
+
+  String _formatStatus(String status) {
+    switch (status) {
+      case 'ongoing':
+        return 'Đang tiến hành';
+      case 'completed':
+        return 'Hoàn thành';
+      case 'hiatus':
+        return 'Tạm ngưng';
+      default:
+        return status;
+    }
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(value),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDescription() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Mô tả',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(_manga!.description),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChapterList() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Danh sách Chapter',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text('${_chapters.length} chapter'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ListView.separated(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: _chapters.length,
+            separatorBuilder: (context, index) => const Divider(),
+            itemBuilder: (context, index) {
+              final chapter = _chapters[index];
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  StringUtils.getChapterTitle(chapter.chapterNumber.toString()),
+                ),
+                onTap: () => _readManga(chapter.chapterNumber),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

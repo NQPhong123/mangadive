@@ -76,7 +76,7 @@ class BannerWidget extends StatelessWidget {
         children: [
           Icon(
             Icons.image_not_supported,
-            size: 48,
+            size: 30,
             color: Colors.grey[400],
           ),
           const SizedBox(height: 8),

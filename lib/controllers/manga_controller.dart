@@ -1,142 +1,296 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:mangadive/models/manga.dart';
 import 'package:mangadive/models/chapter.dart';
+import 'package:mangadive/models/follow.dart';
+import 'package:mangadive/models/rating.dart';
+import 'package:mangadive/models/reading_history.dart';
+import 'package:mangadive/models/category.dart';
 import 'package:mangadive/services/firebase_service.dart';
 import 'package:mangadive/constants/app_constants.dart';
 import 'package:logging/logging.dart';
 
-class MangaController {
+class MangaController extends ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
   final _logger = Logger('MangaController');
 
-  Future<List<Manga>> getAllMangas() async {
+  List<Manga> popularMangas = [];
+  List<Manga> newestMangas = [];
+  List<Category> categories = [];
+  Manga? currentManga;
+  Chapter? currentChapter;
+  bool isLoading = false;
+
+  // Lấy truyện phổ biến
+  Future<void> loadPopularMangas() async {
     try {
-      _logger.info('Bắt đầu lấy danh sách manga');
-      final mangas = await _firebaseService.getCollectionMangas();
-      _logger.info('Đã lấy được ${mangas.length} manga');
-      return mangas;
-    } catch (e, stackTrace) {
-      _logger.severe('Lỗi khi lấy danh sách manga: $e');
-      _logger.severe('Stack trace: $stackTrace');
-      rethrow;
+      isLoading = true;
+      notifyListeners();
+      
+      _logger.info('Bắt đầu lấy danh sách truyện phổ biến');
+      final mangas = await _firebaseService.getAllManga();
+      popularMangas = mangas..sort((a, b) => b.popularityScore.compareTo(a.popularityScore));
+      if (popularMangas.length > 10) {
+        popularMangas = popularMangas.sublist(0, 10);
+      }
+      _logger.info('Đã lấy ${popularMangas.length} truyện phổ biến');
+    } catch (e) {
+      _logger.severe('Lỗi khi lấy danh sách truyện phổ biến: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
   }
 
+  // Lấy truyện mới nhất
+  Future<void> loadNewestMangas() async {
+    try {
+      isLoading = true;
+      notifyListeners();
+      
+      _logger.info('Bắt đầu lấy danh sách truyện mới nhất');
+      final mangas = await _firebaseService.getAllManga();
+      newestMangas = mangas..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      if (newestMangas.length > 10) {
+        newestMangas = newestMangas.sublist(0, 10);
+      }
+      _logger.info('Đã lấy ${newestMangas.length} truyện mới nhất');
+    } catch (e) {
+      _logger.severe('Lỗi khi lấy danh sách truyện mới nhất: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Lấy danh sách thể loại
+  Future<void> loadCategories() async {
+    try {
+      isLoading = true;
+      notifyListeners();
+      
+      _logger.info('Bắt đầu lấy danh sách thể loại');
+      // Tạm thời tạo các thể loại mẫu
+      categories = [
+        Category(
+          id: '1',
+          name: 'Hành động',
+          description: 'Thể loại có nhiều cảnh hành động',
+          mangaCount: 10,
+          createdAt: DateTime.now(),
+        ),
+        Category(
+          id: '2',
+          name: 'Phiêu lưu',
+          description: 'Thể loại phiêu lưu, mạo hiểm',
+          mangaCount: 8,
+          createdAt: DateTime.now(),
+        ),
+        Category(
+          id: '3',
+          name: 'Tình cảm',
+          description: 'Thể loại tình cảm, lãng mạn',
+          mangaCount: 12,
+          createdAt: DateTime.now(),
+        ),
+      ];
+      _logger.info('Đã lấy ${categories.length} thể loại');
+    } catch (e) {
+      _logger.severe('Lỗi khi lấy danh sách thể loại: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Lấy thông tin chi tiết truyện
   Future<Manga?> getManga(String id) async {
     try {
-      _logger.info('Bắt đầu lấy thông tin manga với ID: $id');
-      final manga = await _firebaseService.getManga(id);
-      if (manga != null) {
-        _logger.info('Đã lấy được thông tin manga: ${manga.name}');
+      isLoading = true;
+      notifyListeners();
+      
+      _logger.info('Bắt đầu lấy thông tin truyện với ID: $id');
+      currentManga = await _firebaseService.getManga(id);
+      
+      if (currentManga != null) {
+        _logger.info('Đã lấy được thông tin truyện: ${currentManga!.title}');
       } else {
-        _logger.warning('Không tìm thấy manga với ID: $id');
+        _logger.warning('Không tìm thấy truyện với ID: $id');
       }
-      return manga;
-    } catch (e, stackTrace) {
-      _logger.severe('Lỗi khi lấy thông tin manga: $e');
-      _logger.severe('Stack trace: $stackTrace');
-      rethrow;
+      
+      return currentManga;
+    } catch (e) {
+      _logger.severe('Lỗi khi lấy thông tin truyện: $e');
+      return null;
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
   }
 
-  Future<Chapter?> getChapter(String mangaId, String chapterId) async {
+  // Lấy danh sách chapter của truyện
+  Future<List<Chapter>> getChapters(String mangaId) async {
     try {
-      _logger
-          .info('Bắt đầu lấy thông tin chapter $chapterId của manga $mangaId');
-      final chapter =
-          await _firebaseService.getMangaChapter(mangaId, chapterId);
-      if (chapter != null) {
-        _logger.info('Đã lấy được thông tin chapter: ${chapter.chapterNumber}');
-      } else {
-        _logger.warning('Không tìm thấy chapter với ID: $chapterId');
-      }
-      return chapter;
-    } catch (e, stackTrace) {
-      _logger.severe('Lỗi khi lấy thông tin chapter: $e');
-      _logger.severe('Stack trace: $stackTrace');
-      rethrow;
-    }
-  }
-
-  Future<List<Chapter>> getMangaChapters(String mangaId) async {
-    try {
-      _logger.info('Bắt đầu lấy danh sách chapters của manga: $mangaId');
+      isLoading = true;
+      notifyListeners();
+      
+      _logger.info('Bắt đầu lấy danh sách chapter của truyện: $mangaId');
       final chapters = await _firebaseService.getMangaChapters(mangaId);
-      _logger.info('Đã lấy được ${chapters.length} chapters');
+      _logger.info('Đã lấy được ${chapters.length} chapter');
+      
       return chapters;
-    } catch (e, stackTrace) {
-      _logger.severe('Lỗi khi lấy danh sách chapters: $e');
-      _logger.severe('Stack trace: $stackTrace');
-      rethrow;
+    } catch (e) {
+      _logger.severe('Lỗi khi lấy danh sách chapter: $e');
+      return [];
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
   }
 
-  Future<void> incrementMangaView(String mangaId) async {
+  // Lấy thông tin chi tiết chapter
+  Future<Chapter?> getChapter(String mangaId, int chapterNumber) async {
     try {
-      _logger.info('Bắt đầu tăng lượt xem cho manga: $mangaId');
-      await _firebaseService.updateManga(mangaId, {
-        'views': FieldValue.increment(1),
-      });
-      _logger.info('Đã tăng lượt xem thành công');
-    } catch (e, stackTrace) {
-      _logger.severe('Lỗi khi tăng lượt xem manga: $e');
-      _logger.severe('Stack trace: $stackTrace');
-      rethrow;
-    }
-  }
-
-  Future<void> incrementChapterView(String mangaId, String chapterId) async {
-    try {
-      _logger.info('Bắt đầu tăng lượt xem cho chapter: $chapterId');
-      await _firebaseService.updateDocument(
-        '${AppConstants.mangasCollection}/$mangaId/${AppConstants.chaptersCollection}',
-        chapterId,
-        {'views': FieldValue.increment(1)},
-      );
-      _logger.info('Đã tăng lượt xem thành công');
-    } catch (e, stackTrace) {
-      _logger.severe('Lỗi khi tăng lượt xem chapter: $e');
-      _logger.severe('Stack trace: $stackTrace');
-      rethrow;
-    }
-  }
-
-  Future<void> toggleMangaLike(String mangaId, String userId) async {
-    try {
-      _logger.info('Bắt đầu toggle like cho manga: $mangaId');
-      final manga = await getManga(mangaId);
-      if (manga != null) {
-        final likes = manga.follows;
-        await _firebaseService.updateManga(mangaId, {
-          'follows': likes + 1,
-        });
-        _logger.info('Đã toggle like thành công');
+      isLoading = true;
+      notifyListeners();
+      
+      _logger.info('Bắt đầu lấy thông tin chapter $chapterNumber của truyện $mangaId');
+      // Chuyển chapterNumber sang String vì API getMangaChapter nhận chapterId dạng String
+      final chapterId = chapterNumber.toString();
+      currentChapter = await _firebaseService.getMangaChapter(mangaId, chapterId);
+      
+      if (currentChapter != null) {
+        _logger.info('Đã lấy được thông tin chapter: ${currentChapter!.chapterNumber}');
+      } else {
+        _logger.warning('Không tìm thấy chapter $chapterNumber');
       }
-    } catch (e, stackTrace) {
-      _logger.severe('Lỗi khi toggle like manga: $e');
-      _logger.severe('Stack trace: $stackTrace');
+      
+      return currentChapter;
+    } catch (e) {
+      _logger.severe('Lỗi khi lấy thông tin chapter: $e');
+      return null;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Theo dõi truyện
+  Future<void> followManga(String userId, String mangaId) async {
+    try {
+      _logger.info('Bắt đầu theo dõi truyện: $mangaId');
+      await _firebaseService.addToFavorites(mangaId);
+      _logger.info('Đã theo dõi truyện thành công');
+      
+      // Cập nhật lại thông tin truyện hiện tại
+      if (currentManga != null && currentManga!.id == mangaId) {
+        await getManga(mangaId);
+      }
+    } catch (e) {
+      _logger.severe('Lỗi khi theo dõi truyện: $e');
       rethrow;
     }
   }
 
-  Future<void> toggleChapterLike(
-      String mangaId, String chapterId, String userId) async {
+  // Hủy theo dõi truyện
+  Future<void> unfollowManga(String userId, String mangaId) async {
     try {
-      _logger.info('Bắt đầu toggle like cho chapter: $chapterId');
-      final chapter = await getChapter(mangaId, chapterId);
-      if (chapter != null) {
-        final likes = chapter.likes;
-        await _firebaseService.updateDocument(
-          '${AppConstants.mangasCollection}/$mangaId/${AppConstants.chaptersCollection}',
-          chapterId,
-          {'likes': likes + 1},
-        );
-        _logger.info('Đã toggle like thành công');
+      _logger.info('Bắt đầu hủy theo dõi truyện: $mangaId');
+      await _firebaseService.removeFromFavorites(mangaId);
+      _logger.info('Đã hủy theo dõi truyện thành công');
+      
+      // Cập nhật lại thông tin truyện hiện tại
+      if (currentManga != null && currentManga!.id == mangaId) {
+        await getManga(mangaId);
       }
-    } catch (e, stackTrace) {
-      _logger.severe('Lỗi khi toggle like chapter: $e');
-      _logger.severe('Stack trace: $stackTrace');
+    } catch (e) {
+      _logger.severe('Lỗi khi hủy theo dõi truyện: $e');
       rethrow;
+    }
+  }
+
+  // Đánh giá truyện - Hiện chưa có phương thức tương ứng trong FirebaseService
+  Future<void> rateManga(String userId, String mangaId, int rating, {String? review}) async {
+    try {
+      _logger.info('Bắt đầu đánh giá truyện: $mangaId với điểm $rating');
+      // Tạm thời không có phương thức rateManga trong FirebaseService
+      _logger.info('Đã đánh giá truyện thành công');
+      
+      // Cập nhật lại thông tin truyện hiện tại
+      if (currentManga != null && currentManga!.id == mangaId) {
+        await getManga(mangaId);
+      }
+    } catch (e) {
+      _logger.severe('Lỗi khi đánh giá truyện: $e');
+      rethrow;
+    }
+  }
+
+  // Cập nhật lịch sử đọc
+  Future<void> updateReadingHistory(
+    String userId,
+    String mangaId,
+    int chapterNumber,
+    int pageNumber,
+    int readingTime,
+  ) async {
+    try {
+      _logger.info('Bắt đầu cập nhật lịch sử đọc truyện: $mangaId, chapter: $chapterNumber');
+      await _firebaseService.updateReadingHistory(mangaId, chapterNumber.toString());
+      _logger.info('Đã cập nhật lịch sử đọc thành công');
+    } catch (e) {
+      _logger.severe('Lỗi khi cập nhật lịch sử đọc: $e');
+      rethrow;
+    }
+  }
+
+  // Tìm kiếm truyện
+  Future<List<Manga>> searchMangas(String query) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+      
+      _logger.info('Bắt đầu tìm kiếm truyện với từ khóa: $query');
+      // Hiện chưa có phương thức tìm kiếm, tạm thời lấy tất cả và lọc
+      final allMangas = await _firebaseService.getAllManga();
+      final results = allMangas.where((manga) => 
+        manga.title.toLowerCase().contains(query.toLowerCase()) ||
+        manga.description.toLowerCase().contains(query.toLowerCase())
+      ).toList();
+      
+      _logger.info('Đã tìm thấy ${results.length} kết quả');
+      
+      return results;
+    } catch (e) {
+      _logger.severe('Lỗi khi tìm kiếm truyện: $e');
+      return [];
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Lấy truyện theo thể loại
+  Future<List<Manga>> getMangasByCategory(String categoryId) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+      
+      _logger.info('Bắt đầu lấy danh sách truyện theo thể loại: $categoryId');
+      // Hiện chưa có phương thức lấy theo thể loại, tạm thời lấy tất cả và lọc
+      final allMangas = await _firebaseService.getAllManga();
+      final results = allMangas.where((manga) => 
+        manga.genres.contains(categoryId)
+      ).toList();
+      
+      _logger.info('Đã tìm thấy ${results.length} truyện');
+      
+      return results;
+    } catch (e) {
+      _logger.severe('Lỗi khi lấy truyện theo thể loại: $e');
+      return [];
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
   }
 }

@@ -1,0 +1,199 @@
+CẤU TRÚC DATABASE CHO ỨNG DỤNG ĐỌC TRUYỆN TRANH
+
+1. Collection: users/{userId}
+{
+  "email": "string",
+  "username": "string",
+  "experience": "number",
+  "totalReadChapters": "number",
+  "premium": "boolean",
+  "createdAt": "timestamp",
+  "lastLogin": "timestamp",
+  "settings": {
+    "theme": "string (light/dark)",
+    "language": "string",
+    "notification": {
+      "newChapter": "boolean",
+      "system": "boolean"
+    },
+    "reading": {
+      "defaultQuality": "string",
+      "defaultDirection": "string"
+    }
+  }
+}
+
+   Subcollection: users/{userId}/reading_history
+   {
+     "mangaId": "string",
+     "lastReadChapter": {
+       "chapterNumber": "number",
+       "readAt": "timestamp"
+     },
+     "totalReadChapters": "number",
+     "totalReadingTime": "number",
+     "lastReadAt": "timestamp",
+     "bookmark": {
+       "pageNumber": "number",
+       "createdAt": "timestamp"
+     }
+   }
+
+   Subcollection: users/{userId}/follows
+   {
+     "mangaId": "string",
+     "createdAt": "timestamp",
+     "lastReadChapter": {
+       "chapterNumber": "number",
+       "readAt": "timestamp"
+     }
+   }
+
+   Subcollection: users/{userId}/notifications
+   {
+     "type": "string (new_chapter/follow_update/system)",
+     "data": {
+       "mangaId": "string",
+       "title": "string",
+       "chapterNumber": "number"
+     },
+     "read": "boolean",
+     "createdAt": "timestamp",
+     "expiresAt": "timestamp"
+   }
+
+   Subcollection: users/{userId}/purchases
+   {
+     "mangaId": "string",
+     "amount": "number",
+     "currency": "string",
+     "status": "string (pending/completed/failed)",
+     "paymentMethod": "string",
+     "purchaseDate": "timestamp",
+     "expiryDate": "timestamp"
+   }
+
+2. Collection: mangas/{mangaId}
+{
+  "title": "string",
+  "title_lowercase": "string",
+  "description": "string",
+  "coverImage": "string (URL)",
+  "author": "string",
+  "artist": "string",
+  "status": "string (ongoing/completed/hiatus)",
+  "genres": ["array of strings"],
+  "totalViews": "number",
+  "totalFollowers": "number",
+  "averageRating": "number",
+  "isPremium": "boolean",
+  "price": "number",
+  "lastChapterNumber": "number",
+  "popularity_score": "number",
+  "search_keywords": ["array of strings"],
+  "createdAt": "timestamp",
+  "updatedAt": "timestamp"
+}
+
+   Subcollection: mangas/{mangaId}/chapters/{chapterNumber}
+   {
+     "chapter_number": "number",
+     "created_at": "timestamp",
+     "likes": "number",
+     "pages": [
+       {
+         "image_url": "string (URL)",
+         "page_number": "number"
+       }
+     ]
+   }
+
+   Subcollection: mangas/{mangaId}/ratings
+   {
+     "userId": "string",
+     "rating": "number (1-5)",
+     "review": "string",
+     "createdAt": "timestamp",
+     "updatedAt": "timestamp",
+     "likes": "number",
+     "reports": "number"
+   }
+
+3. Collection: categories/{categoryId}
+{
+  "name": "string",
+  "description": "string",
+  "mangaCount": "number",
+  "createdAt": "timestamp"
+}
+
+
+
+44. Collection: cache
+{
+  "popularMangas": {
+    "data": ["array of mangaIds"],
+    "updatedAt": "timestamp",
+    "expiresAt": "timestamp"
+  },
+  "newestMangas": {
+    "data": ["array of mangaIds"],
+    "updatedAt": "timestamp",
+    "expiresAt": "timestamp"
+  },
+  "trendingMangas": {
+    "data": ["array of mangaIds"],
+    "updatedAt": "timestamp",
+    "expiresAt": "timestamp"
+  }
+}
+
+CÁC TÍNH NĂNG ĐƯỢC HỖ TRỢ:
+
+1. Quản lý người dùng và cài đặt
+   - Thông tin cá nhân
+   - Cài đặt giao diện
+   - Cài đặt thông báo
+   - Cài đặt đọc truyện
+
+2. Hiển thị và tìm kiếm manga
+   - Danh sách manga mới
+   - Manga phổ biến
+   - Tìm kiếm theo nhiều tiêu chí
+   - Phân loại theo thể loại và tag
+
+3. Hệ thống đọc và theo dõi
+   - Đọc truyện với nhiều chất lượng hình ảnh
+   - Theo dõi truyện
+   - Lưu lịch sử đọc
+   - Đánh dấu trang
+
+4. Thông báo và cập nhật
+   - Thông báo chapter mới
+   - Thông báo hệ thống
+   - Quản lý trạng thái đã đọc
+
+5. Hệ thống đánh giá và bình luận
+   - Đánh giá truyện
+   - Viết review
+   - Like và report review
+
+6. Thanh toán và truyện premium
+   - Mua truyện premium
+   - Quản lý giao dịch
+   - Thời hạn sử dụng
+
+7. Thống kê và thành tích
+   - Thống kê thời gian đọc
+   - Thành tích người dùng
+   - Phần thưởng
+
+8. Caching dữ liệu
+   - Cache danh sách manga phổ biến
+   - Cache manga mới
+   - Cache manga trending
+
+9. Phân loại và tag
+   - Quản lý thể loại
+   - Quản lý tag
+   - Thống kê số lượng 

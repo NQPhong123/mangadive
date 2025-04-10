@@ -4,57 +4,62 @@ class User {
   final String id;
   final String email;
   final String username;
-  final String avatarUrl;
-  final List<String> roles;
-  final List<String> favoriteMangas;
-  final List<Map<String, dynamic>> readingHistory;
+  final int experience;
+  final int totalReadChapters;
+  final bool premium;
   final DateTime createdAt;
-  final DateTime lastLoginAt;
-  final DateTime updatedAt;
+  final DateTime lastLogin;
+  final UserSettings settings;
 
   const User({
     required this.id,
     required this.email,
     required this.username,
-    required this.avatarUrl,
-    required this.roles,
-    required this.favoriteMangas,
-    required this.readingHistory,
+    required this.experience,
+    required this.totalReadChapters,
+    required this.premium,
     required this.createdAt,
-    required this.lastLoginAt,
-    required this.updatedAt,
+    required this.lastLogin,
+    required this.settings,
   });
-
-  bool get isAdmin => roles.contains('admin');
 
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      id: map['id'] as String,
-      email: map['email'] as String,
-      username: map['username'] as String,
-      avatarUrl: map['avatar_url'] as String? ?? '',
-      roles: List<String>.from(map['roles'] ?? ['user']),
-      favoriteMangas: List<String>.from(map['favorite_mangas'] ?? []),
-      readingHistory:
-          List<Map<String, dynamic>>.from(map['reading_history'] ?? []),
-      createdAt: (map['created_at'] as Timestamp).toDate(),
-      lastLoginAt: (map['last_login_at'] as Timestamp).toDate(),
-      updatedAt: (map['updated_at'] as Timestamp).toDate(),
+      id: map['id'] as String? ?? '',
+      email: map['email'] as String? ?? '',
+      username: map['username'] as String? ?? '',
+      experience: map['experience'] as int? ?? 0,
+      totalReadChapters: map['totalReadChapters'] as int? ?? 0,
+      premium: map['premium'] as bool? ?? false,
+      createdAt: map['createdAt'] is Timestamp
+          ? (map['createdAt'] as Timestamp).toDate()
+          : DateTime.parse(map['createdAt'] as String? ??
+              DateTime.now().toIso8601String()),
+      lastLogin: map['lastLogin'] is Timestamp
+          ? (map['lastLogin'] as Timestamp).toDate()
+          : DateTime.parse(map['lastLogin'] as String? ??
+              DateTime.now().toIso8601String()),
+      settings: UserSettings.fromMap(
+          map['settings'] as Map<String, dynamic>? ?? {}),
     );
+  }
+
+  factory User.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    data['id'] = doc.id;
+    return User.fromMap(data);
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'email': email,
       'username': username,
-      'avatar_url': avatarUrl,
-      'roles': roles,
-      'favorite_mangas': favoriteMangas,
-      'reading_history': readingHistory,
-      'created_at': Timestamp.fromDate(createdAt),
-      'last_login_at': Timestamp.fromDate(lastLoginAt),
-      'updated_at': Timestamp.fromDate(updatedAt),
+      'experience': experience,
+      'totalReadChapters': totalReadChapters,
+      'premium': premium,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'lastLogin': Timestamp.fromDate(lastLogin),
+      'settings': settings.toMap(),
     };
   }
 
@@ -62,30 +67,124 @@ class User {
     String? id,
     String? email,
     String? username,
-    String? avatarUrl,
-    List<String>? roles,
-    List<String>? favoriteMangas,
-    List<Map<String, dynamic>>? readingHistory,
+    int? experience,
+    int? totalReadChapters,
+    bool? premium,
     DateTime? createdAt,
-    DateTime? lastLoginAt,
-    DateTime? updatedAt,
+    DateTime? lastLogin,
+    UserSettings? settings,
   }) {
     return User(
       id: id ?? this.id,
       email: email ?? this.email,
       username: username ?? this.username,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
-      roles: roles ?? this.roles,
-      favoriteMangas: favoriteMangas ?? this.favoriteMangas,
-      readingHistory: readingHistory ?? this.readingHistory,
+      experience: experience ?? this.experience,
+      totalReadChapters: totalReadChapters ?? this.totalReadChapters,
+      premium: premium ?? this.premium,
       createdAt: createdAt ?? this.createdAt,
-      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+      lastLogin: lastLogin ?? this.lastLogin,
+      settings: settings ?? this.settings,
     );
   }
 
   @override
   String toString() {
-    return 'User(id: $id, email: $email, username: $username, avatarUrl: $avatarUrl)';
+    return 'User(id: $id, email: $email, username: $username)';
+  }
+}
+
+class UserSettings {
+  final String theme;
+  final String language;
+  final NotificationSettings notification;
+  final ReadingSettings reading;
+
+  UserSettings({
+    required this.theme,
+    required this.language,
+    required this.notification,
+    required this.reading,
+  });
+
+  factory UserSettings.fromMap(Map<String, dynamic> map) {
+    return UserSettings(
+      theme: map['theme'] as String? ?? 'light',
+      language: map['language'] as String? ?? 'vi',
+      notification: NotificationSettings.fromMap(
+          map['notification'] as Map<String, dynamic>? ?? {}),
+      reading: ReadingSettings.fromMap(
+          map['reading'] as Map<String, dynamic>? ?? {}),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'theme': theme,
+      'language': language,
+      'notification': notification.toMap(),
+      'reading': reading.toMap(),
+    };
+  }
+
+  UserSettings copyWith({
+    String? theme,
+    String? language,
+    NotificationSettings? notification,
+    ReadingSettings? reading,
+  }) {
+    return UserSettings(
+      theme: theme ?? this.theme,
+      language: language ?? this.language,
+      notification: notification ?? this.notification,
+      reading: reading ?? this.reading,
+    );
+  }
+}
+
+class NotificationSettings {
+  final bool newChapter;
+  final bool system;
+
+  NotificationSettings({
+    required this.newChapter,
+    required this.system,
+  });
+
+  factory NotificationSettings.fromMap(Map<String, dynamic> map) {
+    return NotificationSettings(
+      newChapter: map['newChapter'] as bool? ?? true,
+      system: map['system'] as bool? ?? true,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'newChapter': newChapter,
+      'system': system,
+    };
+  }
+}
+
+class ReadingSettings {
+  final String defaultQuality;
+  final String defaultDirection;
+
+  ReadingSettings({
+    required this.defaultQuality,
+    required this.defaultDirection,
+  });
+
+  factory ReadingSettings.fromMap(Map<String, dynamic> map) {
+    return ReadingSettings(
+      defaultQuality: map['defaultQuality'] as String? ?? 'high',
+      defaultDirection: map['defaultDirection'] as String? ?? 'vertical',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'defaultQuality': defaultQuality,
+      'defaultDirection': defaultDirection,
+    };
   }
 }

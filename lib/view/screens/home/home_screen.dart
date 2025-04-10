@@ -7,6 +7,9 @@ import 'package:mangadive/services/firebase_service.dart';
 import 'package:mangadive/models/manga.dart';
 import 'package:mangadive/view/widgets/navigation_bar/nav_bar.dart';
 import 'package:mangadive/view/screens/user/pages/account/account_screen.dart';
+import 'package:mangadive/view/widgets/home/home_tab_item.dart';
+import 'package:mangadive/view/widgets/home/manga_card.dart';
+import 'package:mangadive/view/screens/search/search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,10 +34,10 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _isLoading = true);
     try {
       print('Đang tải manga...');
-      final mangas = await _firebaseService.getCollectionMangas();
+      final mangas = await _firebaseService.getAllManga();
       print('Đã tải xong manga: ${mangas.length} bộ');
       print(
-          'Manga đầu tiên: ${mangas.isNotEmpty ? mangas.first.name : 'không có'}');
+          'Manga đầu tiên: ${mangas.isNotEmpty ? mangas.first.title : 'không có'}');
 
       if (mounted) {
         setState(() {
@@ -92,19 +95,33 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
-                const CustomSearchBar(),
+                CustomSearchBar(
+                  onSearch: (query) {
+                    // Handle the search query
+                    // This could navigate to the search screen or perform inline search
+                    if (query.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SearchScreen(),
+                        ),
+                      );
+                    }
+                  },
+                  hintText: 'Tìm kiếm manga...',
+                ),
                 const SizedBox(height: 12),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildTabItem(Icons.favorite_border, 'Favorites'),
+                      HomeTabItem(icon: Icons.favorite_border, label: 'Favorites'),
                       const SizedBox(width: 12),
-                      _buildTabItem(Icons.history, 'History'),
+                      HomeTabItem(icon: Icons.history, label: 'History'),
                       const SizedBox(width: 12),
-                      _buildTabItem(Icons.bookmark_border, 'Following'),
+                      HomeTabItem(icon: Icons.bookmark_border, label: 'Following'),
                       const SizedBox(width: 12),
-                      _buildTabItem(Icons.download_outlined, 'Downloads'),
+                      HomeTabItem(icon: Icons.download_outlined, label: 'Downloads'),
                     ],
                   ),
                 ),
@@ -119,9 +136,8 @@ class _HomeScreenState extends State<HomeScreen> {
               itemBuilder: (context, index) {
                 final manga = _mangas[index];
                 return BannerWidget(
-                  title: manga.name,
-                  imageUrl:
-                      'https://res.cloudinary.com/dbmua87fp/image/upload/manga/${manga.name}/cover.jpg',
+                  title: manga.title,
+                  imageUrl: manga.coverImage,
                 );
               },
             ),
@@ -160,44 +176,22 @@ class _HomeScreenState extends State<HomeScreen> {
             itemCount: _mangas.length,
             itemBuilder: (context, index) {
               final manga = _mangas[index];
-              return GestureDetector(
+              return MangaCard(
+                manga: manga,
                 onTap: () {
-                  print('Manga được chọn: ${manga.name}');
+                  print('Manga được chọn: ${manga.title}');
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => MangaDetailScreen(
-                        mangaId: manga.name,
+                        mangaId: manga.id,
                       ),
                     ),
                   );
                 },
-                child: MangaGridItem(
-                  title: manga.name,
-                  chapter: manga.latestChapter.toString(),
-                  imageUrl:
-                      'https://res.cloudinary.com/dbmua87fp/image/upload/manga/${manga.name}/cover.jpg',
-                ),
               );
             },
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabItem(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16),
-          const SizedBox(width: 4),
-          Text(label),
         ],
       ),
     );

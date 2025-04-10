@@ -3,6 +3,7 @@ import 'package:mangadive/controllers/manga_controller.dart';
 import 'package:mangadive/models/chapter.dart';
 import 'package:mangadive/constants/app_constants.dart';
 import 'package:mangadive/utils/string_utils.dart';
+import 'package:mangadive/services/firebase_service.dart';
 
 class MangaReadScreen extends StatefulWidget {
   final String mangaId;
@@ -57,11 +58,11 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
       setState(() => _isLoading = true);
 
       final chapter =
-          await _mangaController.getChapter(widget.mangaId, _currentChapterId);
+          await _mangaController.getChapter(widget.mangaId, int.parse(_currentChapterId));
 
       if (chapter != null) {
         final List<String> pages =
-            chapter.pages.map((page) => page['image_url'] as String).toList();
+            chapter.pages.map((page) => page.imageUrl).toList();
 
         if (mounted) {
           setState(() {
@@ -85,7 +86,7 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
   Future<void> _loadChapters() async {
     try {
       print('Đang tải danh sách chapter...');
-      final chapters = await _mangaController.getMangaChapters(widget.mangaId);
+      final chapters = await _mangaController.getChapters(widget.mangaId);
       print('Số lượng chapter: ${chapters.length}');
       if (mounted) {
         setState(() {
@@ -98,7 +99,12 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
   }
 
   Future<void> _incrementView() async {
-    await _mangaController.incrementMangaView(widget.mangaId);
+    try {
+      final firebaseService = FirebaseService();
+      await firebaseService.incrementMangaView(widget.mangaId);
+    } catch (e) {
+      print('Lỗi khi tăng lượt xem: $e');
+    }
   }
 
   void _navigateToChapter(String chapterId) {

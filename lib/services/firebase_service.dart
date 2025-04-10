@@ -27,24 +27,27 @@ class FirebaseService {
 
       final manga = Manga.fromMap({
         'id': doc.id,
-        'name': data?['name'] ?? '',
+        'title': data?['title'] ?? '',
+        'title_lowercase': data?['title_lowercase'] ?? '',
         'description': data?['description'] ?? '',
+        'coverImage': data?['coverImage'] ?? '',
+        'author': data?['author'] ?? '',
+        'artist': data?['artist'] ?? '',
         'genres': data?['genres'] ?? [],
         'status': data?['status'] ?? 'ongoing',
-        'total_chapters': data?['total_chapters'] ?? 0,
-        'latest_chapter': data?['latest_chapter'] ?? 0,
-        'views': data?['views'] ?? 0,
-        'follows': data?['follows'] ?? 0,
-        'vote_score': data?['vote_score'] ?? 0.0,
-        'vote_count': data?['vote_count'] ?? 0,
-        'created_at':
-            (data?['created_at'] as Timestamp).toDate().toIso8601String(),
-        'updated_at':
-            (data?['updated_at'] as Timestamp).toDate().toIso8601String(),
-        'cover_url': data?['cover_url'] ?? '',
+        'totalViews': data?['totalViews'] ?? 0,
+        'totalFollowers': data?['totalFollowers'] ?? 0,
+        'averageRating': data?['averageRating'] ?? 0.0,
+        'isPremium': data?['isPremium'] ?? false,
+        'price': data?['price'] ?? 0.0,
+        'lastChapterNumber': data?['lastChapterNumber'] ?? 0,
+        'popularity_score': data?['popularity_score'] ?? 0,
+        'search_keywords': data?['search_keywords'] ?? [],
+        'createdAt': data?['createdAt'] ?? Timestamp.now(),
+        'updatedAt': data?['updatedAt'] ?? Timestamp.now(),
       });
 
-      print('Đã chuyển đổi thành công manga: ${manga.name}');
+      print('Đã chuyển đổi thành công manga: ${manga.title}');
       return manga;
     } catch (e, stackTrace) {
       print('Lỗi khi lấy thông tin manga: $e');
@@ -54,29 +57,38 @@ class FirebaseService {
   }
 
   Future<List<Manga>> getAllManga() async {
-    final snapshot =
-        await _firestore.collection(AppConstants.mangasCollection).get();
-    return snapshot.docs.map((doc) {
-      final data = doc.data();
-      return Manga.fromMap({
-        'id': doc.id,
-        'name': data['name'] ?? '',
-        'description': data['description'] ?? '',
-        'genres': data['genres'] ?? [],
-        'status': data['status'] ?? 'ongoing',
-        'total_chapters': data['total_chapters'] ?? 0,
-        'latest_chapter': data['latest_chapter'] ?? 0,
-        'views': data['views'] ?? 0,
-        'follows': data['follows'] ?? 0,
-        'vote_score': data['vote_score'] ?? 0.0,
-        'vote_count': data['vote_count'] ?? 0,
-        'created_at':
-            (data['created_at'] as Timestamp).toDate().toIso8601String(),
-        'updated_at':
-            (data['updated_at'] as Timestamp).toDate().toIso8601String(),
-        'cover_url': data['cover_url'] ?? '',
-      });
-    }).toList();
+    try {
+      final snapshot =
+          await _firestore.collection(AppConstants.mangasCollection).get();
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Manga.fromMap({
+          'id': doc.id,
+          'title': data['title'] ?? '',
+          'title_lowercase': data['title_lowercase'] ?? '',
+          'description': data['description'] ?? '',
+          'coverImage': data['coverImage'] ?? '',
+          'author': data['author'] ?? '',
+          'artist': data['artist'] ?? '',
+          'genres': data['genres'] ?? [],
+          'status': data['status'] ?? 'ongoing',
+          'totalViews': data['totalViews'] ?? 0,
+          'totalFollowers': data['totalFollowers'] ?? 0,
+          'averageRating': data['averageRating'] ?? 0.0,
+          'isPremium': data['isPremium'] ?? false,
+          'price': data['price'] ?? 0.0,
+          'lastChapterNumber': data['lastChapterNumber'] ?? 0,
+          'popularity_score': data['popularity_score'] ?? 0,
+          'search_keywords': data['search_keywords'] ?? [],
+          'createdAt': data['createdAt'] ?? Timestamp.now(),
+          'updatedAt': data['updatedAt'] ?? Timestamp.now(),
+        });
+      }).toList();
+    } catch (e, stackTrace) {
+      print('Lỗi khi lấy danh sách manga: $e');
+      print('Stack trace: $stackTrace');
+      return [];
+    }
   }
 
   Future<void> updateManga(String id, Map<String, dynamic> data) async {
@@ -105,20 +117,24 @@ class FirebaseService {
       final data = docSnapshot.data()!;
       print('Dữ liệu chapter: $data');
 
-      return Chapter.fromMap({
-        'id': docSnapshot.id,
-        'manga_id': mangaId,
-        'chapter_number': int.tryParse(docSnapshot.id) ?? 0,
-        'pages': data['pages'] ?? [],
-        'views': data['views'] ?? 0,
-        'likes': data['likes'] ?? 0,
-        'created_at': data['created_at'] is Timestamp
-            ? (data['created_at'] as Timestamp).toDate().toIso8601String()
-            : DateTime.now().toIso8601String(),
-        'updated_at': data['updated_at'] is Timestamp
-            ? (data['updated_at'] as Timestamp).toDate().toIso8601String()
-            : DateTime.now().toIso8601String(),
-      });
+      final pagesData = (data['pages'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
+      final pages = pagesData.map((pageData) => 
+        ChapterPage(
+          imageUrl: pageData['image_url'] ?? '',
+          pageNumber: pageData['page_number'] ?? 0,
+        )
+      ).toList();
+
+      return Chapter(
+        id: docSnapshot.id,
+        mangaId: mangaId,
+        chapterNumber: int.tryParse(docSnapshot.id) ?? 0,
+        likes: data['likes'] ?? 0,
+        createdAt: data['created_at'] is Timestamp
+            ? (data['created_at'] as Timestamp).toDate()
+            : DateTime.now(),
+        pages: pages,
+      );
     } catch (e, stackTrace) {
       print('Lỗi khi tải chapter: $e');
       print('Stack trace: $stackTrace');
@@ -141,20 +157,24 @@ class FirebaseService {
         final data = doc.data();
         print('Chapter ${doc.id} data: $data');
 
-        return Chapter.fromMap({
-          'id': doc.id,
-          'manga_id': mangaId,
-          'chapter_number': int.tryParse(doc.id) ?? 0,
-          'pages': data['pages'] ?? [],
-          'views': data['views'] ?? 0,
-          'likes': data['likes'] ?? 0,
-          'created_at': data['created_at'] is Timestamp
-              ? (data['created_at'] as Timestamp).toDate().toIso8601String()
-              : DateTime.now().toIso8601String(),
-          'updated_at': data['updated_at'] is Timestamp
-              ? (data['updated_at'] as Timestamp).toDate().toIso8601String()
-              : DateTime.now().toIso8601String(),
-        });
+        final pagesData = (data['pages'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
+        final pages = pagesData.map((pageData) => 
+          ChapterPage(
+            imageUrl: pageData['image_url'] ?? '',
+            pageNumber: pageData['page_number'] ?? 0,
+          )
+        ).toList();
+
+        return Chapter(
+          id: doc.id,
+          mangaId: mangaId,
+          chapterNumber: int.tryParse(doc.id) ?? 0,
+          likes: data['likes'] ?? 0,
+          createdAt: data['created_at'] is Timestamp
+              ? (data['created_at'] as Timestamp).toDate()
+              : DateTime.now(),
+          pages: pages,
+        );
       }).toList();
 
       // Sắp xếp chapters theo số chapter giảm dần
@@ -212,59 +232,6 @@ class FirebaseService {
     return List<String>.from(doc.data()?['favorites'] ?? []);
   }
 
-  Future<List<Manga>> getCollectionMangas() async {
-    try {
-      print('Bắt đầu lấy dữ liệu từ collection mangas');
-      final snapshot =
-          await _firestore.collection(AppConstants.mangasCollection).get();
-      print('Số lượng documents: ${snapshot.docs.length}');
-
-      if (snapshot.docs.isEmpty) {
-        print('Không tìm thấy manga nào trong collection');
-        return [];
-      }
-
-      final mangas = snapshot.docs.map((doc) {
-        final data = doc.data();
-        print('Document ID: ${doc.id}');
-        print('Document data: $data');
-
-        try {
-          final manga = Manga.fromMap({
-            'id': doc.id,
-            'name': data['name'] ?? '',
-            'description': data['description'] ?? '',
-            'genres': data['genres'] ?? [],
-            'status': data['status'] ?? 'ongoing',
-            'total_chapters': data['total_chapters'] ?? 0,
-            'latest_chapter': data['latest_chapter'] ?? 0,
-            'views': data['views'] ?? 0,
-            'follows': data['follows'] ?? 0,
-            'vote_score': data['vote_score'] ?? 0.0,
-            'vote_count': data['vote_count'] ?? 0,
-            'created_at':
-                (data['created_at'] as Timestamp).toDate().toIso8601String(),
-            'updated_at':
-                (data['updated_at'] as Timestamp).toDate().toIso8601String(),
-            'cover_url': data['cover_url'] ?? '',
-          });
-          print('Đã chuyển đổi thành công manga: ${manga.name}');
-          return manga;
-        } catch (e) {
-          print('Lỗi khi chuyển đổi document ${doc.id}: $e');
-          rethrow;
-        }
-      }).toList();
-
-      print('Đã chuyển đổi thành công ${mangas.length} manga');
-      return mangas;
-    } catch (e, stackTrace) {
-      print('Lỗi khi lấy dữ liệu manga: $e');
-      print('Stack trace: $stackTrace');
-      throw Exception('Không thể lấy danh sách manga: $e');
-    }
-  }
-
   Future<void> incrementMangaView(String mangaId) async {
     try {
       print('Đang cập nhật lượt xem cho manga: $mangaId');
@@ -272,7 +239,7 @@ class FirebaseService {
           .collection(AppConstants.mangasCollection)
           .doc(mangaId)
           .update({
-        'views': FieldValue.increment(1),
+        'totalViews': FieldValue.increment(1),
       });
       print('Đã cập nhật lượt xem thành công');
     } catch (e) {
