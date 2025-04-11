@@ -14,9 +14,16 @@ import 'package:mangadive/view/screens/admin/manage_users_screen.dart';
 import 'package:mangadive/utils/admin_guard.dart';
 import 'package:mangadive/models/manga.dart';
 import 'package:logging/logging.dart';
+import 'package:flutter/services.dart';
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    systemNavigationBarColor: Colors.transparent, // Đổi sang trắng
+    systemNavigationBarIconBrightness: Brightness.dark,
+  ));
   // Configure logging
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
@@ -63,7 +70,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
         ),
-        initialRoute: AppRoutes.home,
+        initialRoute: AppRoutes.mainScreen,
         onGenerateRoute: AppRoutes.generateRoute,
       ),
     );

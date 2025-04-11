@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class NavBar extends StatefulWidget {
-  final Function(int) onItemTapped;
-  final int selectedIndex;
+  final Function(int) onItemTapped;  // Callback khi icon được bấm
+  final int selectedIndex;  // Vị trí tab hiện tại
 
   const NavBar({
     super.key,
@@ -17,41 +17,47 @@ class NavBar extends StatefulWidget {
 class _NavBarState extends State<NavBar> {
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      items: [
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.home,
-            color: widget.selectedIndex == 0 ? Colors.blue : Colors.black,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: Offset(0, -1),
           ),
-          label: 'Trang chủ',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.search,
-            color: widget.selectedIndex == 1 ? Colors.blue : Colors.black,
+        ],
+      ),
+      child: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Trang chủ',
           ),
-          label: 'Tìm kiếm',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.bookmark_border,
-            color: widget.selectedIndex == 2 ? Colors.blue : Colors.black,
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Khám phá',
           ),
-          label: 'BookMark',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.person,
-            color: widget.selectedIndex == 3 ? Colors.blue : Colors.black,
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bookmark_border),
+            label: 'BookMark',
           ),
-          label: 'Tài khoản',
-        ),
-      ],
-      currentIndex: widget.selectedIndex,
-      selectedItemColor: Colors.blue,
-      unselectedItemColor: Colors.black,
-      onTap: widget.onItemTapped,
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Tài khoản',
+          ),
+        ],
+        currentIndex: widget.selectedIndex,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        backgroundColor: Colors.white,
+        elevation: 16,
+        type: BottomNavigationBarType.fixed,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        onTap: widget.onItemTapped,
+      ),
     );
   }
 }

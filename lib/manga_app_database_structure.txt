@@ -93,7 +93,7 @@ CẤU TRÚC DATABASE CHO ỨNG DỤNG ĐỌC TRUYỆN TRANH
   "search_keywords": ["array of strings"],
   "createdAt": "timestamp",
   "updatedAt": "timestamp"
-}
+  }
 
    Subcollection: mangas/{mangaId}/chapters/{chapterNumber}
    {

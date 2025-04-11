@@ -5,7 +5,6 @@ import 'package:mangadive/models/chapter.dart';
 import 'package:mangadive/constants/app_constants.dart';
 import 'package:mangadive/utils/string_utils.dart';
 import 'package:mangadive/view/screens/manga/manga_read_screen.dart';
-import 'package:mangadive/view/screens/manga/manga_collection_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:mangadive/controllers/auth_controller.dart';
@@ -42,13 +41,16 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
       setState(() => _isLoading = true);
       final manga = await _mangaController.getManga(widget.mangaId);
       final chapters = await _mangaController.getChapters(widget.mangaId);
-      
+
       if (manga != null) {
         print('Loaded manga: ${manga.title}');
         if (mounted) {
+          final filteredChapters = chapters.where((c) => c.chapterNumber > 0).toList();
+          filteredChapters.sort((a, b) => a.chapterNumber.compareTo(b.chapterNumber));
+
           setState(() {
             _manga = manga;
-            _chapters = chapters;
+            _chapters = filteredChapters;
             _isLoading = false;
           });
         }
@@ -184,12 +186,6 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
               ),
             ),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.favorite_border),
-                onPressed: () {
-                  // TODO: Implement favorite functionality
-                },
-              ),
               IconButton(
                 icon: const Icon(Icons.share),
                 onPressed: () {

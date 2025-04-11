@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mangadive/models/manga.dart';
 import 'package:mangadive/models/chapter.dart';
 import 'package:mangadive/constants/app_constants.dart';
+import 'package:mangadive/models/category.dart';
 
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -56,7 +57,56 @@ class FirebaseService {
     }
   }
 
-  Future<List<Manga>> getAllManga() async {
+  Future<bool> isUserPremium() async {
+    try {
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) return false;
+
+      final doc = await _firestore.collection('users').doc(userId).get();
+      if (!doc.exists) return false;
+
+      return doc.data()?['isPremium'] == true;
+    } catch (e) {
+      print('Lỗi khi kiểm tra trạng thái premium: $e');
+      return false;
+    }
+  }
+
+  Future<List<Category>> getAllCategories() async {
+    try {
+      // Kiểm tra collection có tồn tại không
+      final collectionRef = FirebaseFirestore.instance.collection('categories');
+      final snapshot = await collectionRef.get();
+
+      print("Raw categories data: ${snapshot.docs.length} documents");
+
+      if (snapshot.docs.isEmpty) {
+        print("Không có thể loại nào trong collection");
+        return [];
+      }
+
+      final categories = snapshot.docs.map((doc) {
+        try {
+          print("Processing category document: ${doc.id}");
+          print("Document data: ${doc.data()}");
+          return Category.fromFirestore(doc);
+        } catch (e) {
+          print("Lỗi khi chuyển đổi document ${doc.id}: $e");
+          return null;
+        }
+      }).whereType<Category>().toList();
+
+      print("Đã chuyển đổi thành công ${categories.length} thể loại");
+      return categories;
+    } catch (e) {
+      print('Lỗi khi lấy danh sách thể loại: $e');
+      print('Stack trace: ${StackTrace.current}');
+      return [];
+    }
+  }
+
+
+    Future<List<Manga>> getAllManga() async {
     try {
       final snapshot =
           await _firestore.collection(AppConstants.mangasCollection).get();
