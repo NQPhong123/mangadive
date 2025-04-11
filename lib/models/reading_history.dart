@@ -1,18 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ReadingHistory {
-  final String id;
-  final String userId;
   final String mangaId;
-  final LastReadChapter lastReadChapter;
+  final ChapterProgress lastReadChapter;
   final int totalReadChapters;
   final int totalReadingTime;
   final DateTime lastReadAt;
   final Bookmark? bookmark;
 
   ReadingHistory({
-    required this.id,
-    required this.userId,
     required this.mangaId,
     required this.lastReadChapter,
     required this.totalReadChapters,
@@ -23,85 +19,42 @@ class ReadingHistory {
 
   factory ReadingHistory.fromMap(Map<String, dynamic> map) {
     return ReadingHistory(
-      id: map['id'] as String? ?? '',
-      userId: map['userId'] as String? ?? '',
-      mangaId: map['mangaId'] as String? ?? '',
-      lastReadChapter: LastReadChapter.fromMap(
-          map['lastReadChapter'] as Map<String, dynamic>? ?? {}),
-      totalReadChapters: map['totalReadChapters'] as int? ?? 0,
-      totalReadingTime: map['totalReadingTime'] as int? ?? 0,
-      lastReadAt: map['lastReadAt'] is Timestamp
-          ? (map['lastReadAt'] as Timestamp).toDate()
-          : DateTime.parse(map['lastReadAt'] as String? ??
-              DateTime.now().toIso8601String()),
-      bookmark: map['bookmark'] != null
-          ? Bookmark.fromMap(map['bookmark'] as Map<String, dynamic>)
+      mangaId: map['mangaId'] as String,
+      lastReadChapter: ChapterProgress.fromMap(map['lastReadChapter'] as Map<String, dynamic>),
+      totalReadChapters: map['totalReadChapters'] as int,
+      totalReadingTime: map['totalReadingTime'] as int,
+      lastReadAt: (map['lastReadAt'] as Timestamp).toDate(),
+      bookmark: map['bookmark'] != null 
+          ? Bookmark.fromMap(map['bookmark'] as Map<String, dynamic>) 
           : null,
     );
   }
 
-  factory ReadingHistory.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    data['id'] = doc.id;
-    return ReadingHistory.fromMap(data);
-  }
-
   Map<String, dynamic> toMap() {
-    final map = {
-      'userId': userId,
+    return {
       'mangaId': mangaId,
       'lastReadChapter': lastReadChapter.toMap(),
       'totalReadChapters': totalReadChapters,
       'totalReadingTime': totalReadingTime,
       'lastReadAt': Timestamp.fromDate(lastReadAt),
+      'bookmark': bookmark?.toMap(),
     };
-
-    if (bookmark != null) {
-      map['bookmark'] = bookmark!.toMap();
-    }
-
-    return map;
-  }
-
-  ReadingHistory copyWith({
-    String? id,
-    String? userId,
-    String? mangaId,
-    LastReadChapter? lastReadChapter,
-    int? totalReadChapters,
-    int? totalReadingTime,
-    DateTime? lastReadAt,
-    Bookmark? bookmark,
-  }) {
-    return ReadingHistory(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      mangaId: mangaId ?? this.mangaId,
-      lastReadChapter: lastReadChapter ?? this.lastReadChapter,
-      totalReadChapters: totalReadChapters ?? this.totalReadChapters,
-      totalReadingTime: totalReadingTime ?? this.totalReadingTime,
-      lastReadAt: lastReadAt ?? this.lastReadAt,
-      bookmark: bookmark ?? this.bookmark,
-    );
   }
 }
 
-class LastReadChapter {
-  final int chapterNumber;
+class ChapterProgress {
+  final double chapterNumber;
   final DateTime readAt;
 
-  LastReadChapter({
+  ChapterProgress({
     required this.chapterNumber,
     required this.readAt,
   });
 
-  factory LastReadChapter.fromMap(Map<String, dynamic> map) {
-    return LastReadChapter(
-      chapterNumber: map['chapterNumber'] as int? ?? 0,
-      readAt: map['readAt'] is Timestamp
-          ? (map['readAt'] as Timestamp).toDate()
-          : DateTime.parse(
-              map['readAt'] as String? ?? DateTime.now().toIso8601String()),
+  factory ChapterProgress.fromMap(Map<String, dynamic> map) {
+    return ChapterProgress(
+      chapterNumber: map['chapterNumber'] as double,
+      readAt: (map['readAt'] as Timestamp).toDate(),
     );
   }
 
@@ -124,11 +77,8 @@ class Bookmark {
 
   factory Bookmark.fromMap(Map<String, dynamic> map) {
     return Bookmark(
-      pageNumber: map['pageNumber'] as int? ?? 0,
-      createdAt: map['createdAt'] is Timestamp
-          ? (map['createdAt'] as Timestamp).toDate()
-          : DateTime.parse(
-              map['createdAt'] as String? ?? DateTime.now().toIso8601String()),
+      pageNumber: map['pageNumber'] as int,
+      createdAt: (map['createdAt'] as Timestamp).toDate(),
     );
   }
 

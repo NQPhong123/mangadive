@@ -5,15 +5,21 @@ class Follow {
   final String id;
   final String userId;
   final String mangaId;
-  final DateTime createdAt;
-  final LastReadChapter lastReadChapter;
+  final ChapterProgress lastReadChapter;
+  final int totalReadChapters;
+  final int totalReadingTime;
+  final DateTime lastReadAt;
+  final Bookmark? bookmark;
 
   Follow({
     required this.id,
     required this.userId,
     required this.mangaId,
-    required this.createdAt,
     required this.lastReadChapter,
+    required this.totalReadChapters,
+    required this.totalReadingTime,
+    required this.lastReadAt,
+    this.bookmark,
   });
 
   factory Follow.fromMap(Map<String, dynamic> map) {
@@ -21,12 +27,17 @@ class Follow {
       id: map['id'] as String? ?? '',
       userId: map['userId'] as String? ?? '',
       mangaId: map['mangaId'] as String? ?? '',
-      createdAt: map['createdAt'] is Timestamp
-          ? (map['createdAt'] as Timestamp).toDate()
-          : DateTime.parse(
-              map['createdAt'] as String? ?? DateTime.now().toIso8601String()),
-      lastReadChapter: LastReadChapter.fromMap(
+      lastReadChapter: ChapterProgress.fromMap(
           map['lastReadChapter'] as Map<String, dynamic>? ?? {}),
+      totalReadChapters: map['totalReadChapters'] as int? ?? 0,
+      totalReadingTime: map['totalReadingTime'] as int? ?? 0,
+      lastReadAt: map['lastReadAt'] is Timestamp
+          ? (map['lastReadAt'] as Timestamp).toDate()
+          : DateTime.parse(map['lastReadAt'] as String? ??
+              DateTime.now().toIso8601String()),
+      bookmark: map['bookmark'] != null
+          ? Bookmark.fromMap(map['bookmark'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -40,8 +51,11 @@ class Follow {
     return {
       'userId': userId,
       'mangaId': mangaId,
-      'createdAt': Timestamp.fromDate(createdAt),
       'lastReadChapter': lastReadChapter.toMap(),
+      'totalReadChapters': totalReadChapters,
+      'totalReadingTime': totalReadingTime,
+      'lastReadAt': Timestamp.fromDate(lastReadAt),
+      'bookmark': bookmark?.toMap(),
     };
   }
 
@@ -49,15 +63,21 @@ class Follow {
     String? id,
     String? userId,
     String? mangaId,
-    DateTime? createdAt,
-    LastReadChapter? lastReadChapter,
+    ChapterProgress? lastReadChapter,
+    int? totalReadChapters,
+    int? totalReadingTime,
+    DateTime? lastReadAt,
+    Bookmark? bookmark,
   }) {
     return Follow(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       mangaId: mangaId ?? this.mangaId,
-      createdAt: createdAt ?? this.createdAt,
       lastReadChapter: lastReadChapter ?? this.lastReadChapter,
+      totalReadChapters: totalReadChapters ?? this.totalReadChapters,
+      totalReadingTime: totalReadingTime ?? this.totalReadingTime,
+      lastReadAt: lastReadAt ?? this.lastReadAt,
+      bookmark: bookmark ?? this.bookmark,
     );
   }
 } 

@@ -4,6 +4,8 @@ import 'package:mangadive/models/chapter.dart';
 import 'package:mangadive/constants/app_constants.dart';
 import 'package:mangadive/utils/string_utils.dart';
 import 'package:mangadive/services/firebase_service.dart';
+import 'package:mangadive/services/reading_history_service.dart';
+import 'package:mangadive/view/screens/manga/manga_detail_screen.dart';
 
 class MangaReadScreen extends StatefulWidget {
   final String mangaId;
@@ -22,6 +24,7 @@ class MangaReadScreen extends StatefulWidget {
 class _MangaReadScreenState extends State<MangaReadScreen> {
   final MangaController _mangaController = MangaController();
   final ScrollController _scrollController = ScrollController();
+  final ReadingHistoryService _readingHistoryService = ReadingHistoryService();
   bool _isLoading = true;
   List<String> _pages = [];
   int _currentPage = 0;
@@ -36,6 +39,7 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
     _loadChapters();
     _setupScrollListener();
     _incrementView();
+    _saveReadingHistory();
   }
 
   void _setupScrollListener() {
@@ -48,6 +52,7 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
 
         if (newPage != _currentPage) {
           setState(() => _currentPage = newPage.clamp(0, _pages.length - 1));
+          _saveReadingHistory();
         }
       }
     });
@@ -107,14 +112,28 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
     }
   }
 
+  Future<void> _saveReadingHistory() async {
+    try {
+      await _readingHistoryService.saveReadingHistory(
+        mangaId: widget.mangaId,
+        chapterId: _currentChapterId,
+        pageNumber: _currentPage,
+      );
+    } catch (e) {
+      print('Lỗi khi lưu lịch sử đọc: $e');
+    }
+  }
+
   void _navigateToChapter(String chapterId) {
     setState(() {
       _currentChapterId = chapterId;
       _isLoading = true;
       _pages = [];
+      _currentPage = 0;
     });
     _loadMangaData();
     _incrementView();
+    _saveReadingHistory();
   }
 
   void _showChapterSelection() {

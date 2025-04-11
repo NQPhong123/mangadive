@@ -27,7 +27,7 @@ CẤU TRÚC DATABASE CHO ỨNG DỤNG ĐỌC TRUYỆN TRANH
    {
      "mangaId": "string",
      "lastReadChapter": {
-       "chapterNumber": "number",
+       "chapterNumber": "number", 
        "readAt": "timestamp"
      },
      "totalReadChapters": "number",

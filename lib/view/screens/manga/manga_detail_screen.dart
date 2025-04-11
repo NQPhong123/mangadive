@@ -10,6 +10,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:mangadive/controllers/auth_controller.dart';
 
+
 class MangaDetailScreen extends StatefulWidget {
   final String mangaId;
 

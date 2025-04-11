@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mangadive/controllers/auth_controller.dart';
 import 'package:mangadive/view/screens/user/pages/account/edit_profile.dart';
+import 'package:mangadive/view/screens/user/pages/account/reading_history_screen.dart';
 import 'package:provider/provider.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -75,7 +76,14 @@ class AccountScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.history),
             title: const Text('Lịch sử đọc truyện'),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ReadingHistoryScreen(),
+                ),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.account_balance_wallet),
