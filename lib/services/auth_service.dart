@@ -11,7 +11,7 @@ class AuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final _logger = Logger('AuthService');
 
-  // register account with email and password
+  // Đăng ký tài khoản với email và password
   Future<models.User?> signUp(String email, String password) async {
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
@@ -25,7 +25,7 @@ class AuthService {
     }
   }
 
-  //signIn account with email and password
+  // Đăng nhập tài khoản với email và password
   Future<models.User?> signIn(String email, String password) async {
     try {
       final userCredential = await _auth.signInWithEmailAndPassword(
@@ -39,12 +39,12 @@ class AuthService {
     }
   }
 
-  //sign out
+  // Đăng xuất
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  // get current user
+  // Lấy người dùng hiện tại
   Future<models.User?> getCurrentUser() async {
     final firebaseUser = _auth.currentUser;
     if (firebaseUser == null) return null;
@@ -66,10 +66,7 @@ class AuthService {
           .doc(uid)
           .get();
       if (doc.exists) {
-        return models.User.fromMap({
-          'id': doc.id,
-          ...doc.data()!,
-        });
+        return models.User.fromFirestore(doc);
       }
       return null;
     } catch (e) {
@@ -95,13 +92,23 @@ class AuthService {
           id: userCredential.user!.uid,
           email: email,
           username: username,
-          avatarUrl: '',
-          roles: ['user'],
-          favoriteMangas: [],
-          readingHistory: [],
+          experience: 0, // Giá trị mặc định
+          totalReadChapters: 0, // Giá trị mặc định
+          premium: false, // Giá trị mặc định
           createdAt: DateTime.now(),
-          lastLoginAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+          lastLogin: DateTime.now(),
+          settings: models.UserSettings(
+            theme: 'light',
+            language: 'vi',
+            notification: models.NotificationSettings(
+              newChapter: true,
+              system: true,
+            ),
+            reading: models.ReadingSettings(
+              defaultQuality: 'high',
+              defaultDirection: 'vertical',
+            ),
+          ),
         );
 
         await _firestore
@@ -135,7 +142,7 @@ class AuthService {
             .collection(AppConstants.usersCollection)
             .doc(userCredential.user!.uid)
             .update({
-          'last_login_at': FieldValue.serverTimestamp(),
+          'lastLogin': FieldValue.serverTimestamp(),
         });
 
         return await getUserById(userCredential.user!.uid);
@@ -163,7 +170,7 @@ class AuthService {
       final userCredential = await _auth.signInWithCredential(credential);
       if (userCredential.user != null) {
         final userDoc = await _firestore
-            .collection('users')
+            .collection(AppConstants.usersCollection)
             .doc(userCredential.user!.uid)
             .get();
 
@@ -172,31 +179,36 @@ class AuthService {
             id: userCredential.user!.uid,
             email: userCredential.user!.email!,
             username: userCredential.user!.displayName ?? 'User',
-            avatarUrl: userCredential.user!.photoURL ?? '',
-            roles: ['user'],
-            favoriteMangas: [],
-            readingHistory: [],
+            experience: 0, // Giá trị mặc định
+            totalReadChapters: 0, // Giá trị mặc định
+            premium: false, // Giá trị mặc định
             createdAt: DateTime.now(),
-            lastLoginAt: DateTime.now(),
-            updatedAt: DateTime.now(),
+            lastLogin: DateTime.now(),
+            settings: models.UserSettings(
+              theme: 'light',
+              language: 'vi',
+              notification: models.NotificationSettings(
+                newChapter: true,
+                system: true,
+              ),
+              reading: models.ReadingSettings(
+                defaultQuality: 'high',
+                defaultDirection: 'vertical',
+              ),
+            ),
           );
 
-          await _firestore.collection('users').doc(user.id).set({
-            'email': user.email,
-            'username': user.username,
-            'avatarUrl': user.avatarUrl,
-            'roles': user.roles,
-            'createdAt': user.createdAt,
-            'lastLoginAt': user.lastLoginAt,
-            'updatedAt': user.updatedAt,
-          });
+          await _firestore
+              .collection(AppConstants.usersCollection)
+              .doc(user.id)
+              .set(user.toMap());
 
           return user;
         } else {
           await _firestore
-              .collection('users')
+              .collection(AppConstants.usersCollection)
               .doc(userCredential.user!.uid)
-              .update({'lastLoginAt': DateTime.now()});
+              .update({'lastLogin': FieldValue.serverTimestamp()});
 
           return await getUserById(userCredential.user!.uid);
         }
@@ -221,7 +233,7 @@ class AuthService {
         final userCredential = await _auth.signInWithCredential(credential);
         if (userCredential.user != null) {
           final userDoc = await _firestore
-              .collection('users')
+              .collection(AppConstants.usersCollection)
               .doc(userCredential.user!.uid)
               .get();
 
@@ -230,31 +242,36 @@ class AuthService {
               id: userCredential.user!.uid,
               email: userCredential.user!.email!,
               username: userCredential.user!.displayName ?? 'User',
-              avatarUrl: userCredential.user!.photoURL ?? '',
-              roles: ['user'],
-              favoriteMangas: [],
-              readingHistory: [],
+              experience: 0, // Giá trị mặc định
+              totalReadChapters: 0, // Giá trị mặc định
+              premium: false, // Giá trị mặc định
               createdAt: DateTime.now(),
-              lastLoginAt: DateTime.now(),
-              updatedAt: DateTime.now(),
+              lastLogin: DateTime.now(),
+              settings: models.UserSettings(
+                theme: 'light',
+                language: 'vi',
+                notification: models.NotificationSettings(
+                  newChapter: true,
+                  system: true,
+                ),
+                reading: models.ReadingSettings(
+                  defaultQuality: 'high',
+                  defaultDirection: 'vertical',
+                ),
+              ),
             );
 
-            await _firestore.collection('users').doc(user.id).set({
-              'email': user.email,
-              'username': user.username,
-              'avatarUrl': user.avatarUrl,
-              'roles': user.roles,
-              'createdAt': user.createdAt,
-              'lastLoginAt': user.lastLoginAt,
-              'updatedAt': user.updatedAt,
-            });
+            await _firestore
+                .collection(AppConstants.usersCollection)
+                .doc(user.id)
+                .set(user.toMap());
 
             return user;
           } else {
             await _firestore
-                .collection('users')
+                .collection(AppConstants.usersCollection)
                 .doc(userCredential.user!.uid)
-                .update({'lastLoginAt': DateTime.now()});
+                .update({'lastLogin': FieldValue.serverTimestamp()});
 
             return await getUserById(userCredential.user!.uid);
           }
@@ -267,7 +284,7 @@ class AuthService {
     return null;
   }
 
-  // resetPassword
+  // Đặt lại mật khẩu
   Future<void> resetPassword(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
   }
@@ -286,123 +303,17 @@ class AuthService {
     }
   }
 
-  // Phân quyền admin
-  Future<void> setAdminRole(String userId) async {
-    final user = await getUserById(userId);
-    if (user == null) throw Exception('User không tồn tại');
-
-    final updatedUser = user.copyWith(roles: ['admin']);
-    await updateUser(updatedUser);
-  }
-
-  // Kiểm tra quyền admin
-  Future<bool> isAdmin() async {
-    final user = await getCurrentUser();
-    return user?.roles.contains('admin') ?? false;
-  }
-
-  // Thêm manga vào danh sách yêu thích
-  Future<void> addToFavorites(String mangaId) async {
-    final user = await getCurrentUser();
-    if (user == null) throw Exception('Chưa đăng nhập');
-
-    if (!user.favoriteMangas.contains(mangaId)) {
-      final updatedUser = user.copyWith(
-        favoriteMangas: [...user.favoriteMangas, mangaId],
-      );
-      await updateUser(updatedUser);
-    }
-  }
-
-  // Thêm vào lịch sử đọc
-  Future<void> addToHistory(String mangaId) async {
-    final user = await getCurrentUser();
-    if (user == null) throw Exception('Chưa đăng nhập');
-
-    final now = DateTime.now();
-    final historyEntry = {
-      'manga_id': mangaId,
-      'timestamp': now.toIso8601String(),
-    };
-
-    final updatedHistory = [...user.readingHistory, historyEntry];
-    final updatedUser = user.copyWith(readingHistory: updatedHistory);
-    await updateUser(updatedUser);
-  }
-
   // Lấy danh sách tất cả users
   Future<List<models.User>> getAllUsers() async {
     try {
-      final querySnapshot = await _firestore.collection('users').get();
-      return querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return models.User.fromMap(data);
-      }).toList();
+      final querySnapshot =
+          await _firestore.collection(AppConstants.usersCollection).get();
+      return querySnapshot.docs
+          .map((doc) => models.User.fromFirestore(doc))
+          .toList();
     } catch (e) {
       _logger.severe('Lỗi khi lấy danh sách users: $e');
       rethrow;
-    }
-  }
-
-  // Xóa quyền admin
-  Future<void> removeAdminRole(String userId) async {
-    final user = await getUserById(userId);
-    if (user == null) throw Exception('User không tồn tại');
-
-    final updatedUser = user.copyWith(roles: ['user']);
-    await updateUser(updatedUser);
-  }
-
-  // Thêm role cho user
-  Future<void> addRole(String userId, String role) async {
-    try {
-      await _firestore.collection('users').doc(userId).update({
-        'roles': FieldValue.arrayUnion([role]),
-      });
-      _logger.info('Đã thêm role $role cho user $userId');
-    } catch (e) {
-      _logger.severe('Lỗi khi thêm role: $e');
-      rethrow;
-    }
-  }
-
-  // Xóa role của user
-  Future<void> removeRole(String userId, String role) async {
-    try {
-      await _firestore.collection('users').doc(userId).update({
-        'roles': FieldValue.arrayRemove([role]),
-      });
-      _logger.info('Đã xóa role $role của user $userId');
-    } catch (e) {
-      _logger.severe('Lỗi khi xóa role: $e');
-      rethrow;
-    }
-  }
-
-  // Kiểm tra user có role cụ thể không
-  Future<bool> hasRole(String userId, String role) async {
-    try {
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-
-      if (!userDoc.exists) {
-        _logger.warning('User $userId không tồn tại');
-        return false;
-      }
-
-      final userData = userDoc.data();
-      if (userData == null) {
-        _logger.warning('User $userId không có dữ liệu');
-        return false;
-      }
-
-      final roles = List<String>.from(userData['roles'] ?? []);
-      final hasRole = roles.contains(role);
-      _logger.info('User $userId ${hasRole ? 'có' : 'không có'} role $role');
-      return hasRole;
-    } catch (e) {
-      _logger.severe('Lỗi khi kiểm tra role: $e');
-      return false;
     }
   }
 }

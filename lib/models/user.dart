@@ -15,9 +15,9 @@ class User {
     required this.id,
     required this.email,
     required this.username,
-    required this.experience,
-    required this.totalReadChapters,
-    required this.premium,
+    this.experience = 0, // Giá trị mặc định là 0
+    this.totalReadChapters = 0, // Giá trị mặc định là 0
+    this.premium = false, // Giá trị mặc định là false
     required this.createdAt,
     required this.lastLogin,
     required this.settings,
@@ -28,19 +28,20 @@ class User {
       id: map['id'] as String? ?? '',
       email: map['email'] as String? ?? '',
       username: map['username'] as String? ?? '',
-      experience: map['experience'] as int? ?? 0,
-      totalReadChapters: map['totalReadChapters'] as int? ?? 0,
-      premium: map['premium'] as bool? ?? false,
+      experience: map['experience'] as int? ?? 0, // Giá trị mặc định là 0
+      totalReadChapters:
+          map['totalReadChapters'] as int? ?? 0, // Giá trị mặc định là 0
+      premium: map['premium'] as bool? ?? false, // Giá trị mặc định là false
       createdAt: map['createdAt'] is Timestamp
           ? (map['createdAt'] as Timestamp).toDate()
-          : DateTime.parse(map['createdAt'] as String? ??
-              DateTime.now().toIso8601String()),
+          : DateTime.parse(
+              map['createdAt'] as String? ?? DateTime.now().toIso8601String()),
       lastLogin: map['lastLogin'] is Timestamp
           ? (map['lastLogin'] as Timestamp).toDate()
-          : DateTime.parse(map['lastLogin'] as String? ??
-              DateTime.now().toIso8601String()),
-      settings: UserSettings.fromMap(
-          map['settings'] as Map<String, dynamic>? ?? {}),
+          : DateTime.parse(
+              map['lastLogin'] as String? ?? DateTime.now().toIso8601String()),
+      settings:
+          UserSettings.fromMap(map['settings'] as Map<String, dynamic>? ?? {}),
     );
   }
 
