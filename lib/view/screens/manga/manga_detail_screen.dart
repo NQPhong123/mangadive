@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mangadive/controllers/manga_controller.dart';
 import 'package:mangadive/models/manga.dart';
@@ -8,7 +9,6 @@ import 'package:mangadive/view/screens/manga/manga_read_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:mangadive/controllers/auth_controller.dart';
-import 'package:mangadive/routes/app_routes.dart';
 
 class MangaDetailScreen extends StatefulWidget {
   final String mangaId;
@@ -45,8 +45,10 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
       if (manga != null) {
         print('Loaded manga: ${manga.title}');
         if (mounted) {
-          final filteredChapters = chapters.where((c) => c.chapterNumber > 0).toList();
-          filteredChapters.sort((a, b) => a.chapterNumber.compareTo(b.chapterNumber));
+          final filteredChapters =
+              chapters.where((c) => c.chapterNumber > 0).toList();
+          filteredChapters
+              .sort((a, b) => a.chapterNumber.compareTo(b.chapterNumber));
 
           setState(() {
             _manga = manga;
@@ -82,16 +84,17 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
   void _toggleFollow() async {
     try {
       setState(() => _isFollowingLoading = true);
-      final authController = Provider.of<AuthController>(context, listen: false);
-      final userId = authController.currentUser?.id;
 
-      if (userId == null) {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vui lòng đăng nhập để theo dõi truyện')),
+          const SnackBar(
+              content: Text('Vui lòng đăng nhập để theo dõi truyện')),
         );
         return;
       }
-
+      final userId = user.uid;
       if (_isFollowing) {
         await _mangaController.unfollowManga(userId, _manga!.id);
       } else {
@@ -141,7 +144,8 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
                     placeholder: (context, url) => const Center(
                       child: CircularProgressIndicator(),
                     ),
-                    errorWidget: (context, url, error) => const Icon(Icons.error),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.error),
                   ),
                   Positioned(
                     bottom: 0,
