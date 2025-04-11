@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mangadive/routes/app_routes.dart';
 import 'package:mangadive/services/auth_service.dart';
 import 'package:logging/logging.dart';
 
@@ -16,7 +17,11 @@ class SocialLogin extends StatelessWidget {
       _logger.info(
         'Đăng nhập Google thành công: ${user?.email ?? 'Không có email'}',
       );
-      Navigator.pushReplacementNamed(context, '/main-screen');
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.account,
+        arguments: {'initialIndex': 0},
+      );
     } catch (e) {
       if (!context.mounted) return;
       _logger.severe('Lỗi đăng nhập Google: $e');
@@ -35,7 +40,7 @@ class SocialLogin extends StatelessWidget {
       _logger.info(
         'Đăng nhập Facebook thành công: ${user?.email ?? 'Không có email'}',
       );
-      Navigator.pushReplacementNamed(context, '/main-screen');
+      Navigator.pushReplacementNamed(context, AppRoutes.account);
     } catch (e) {
       if (!context.mounted) return;
       _logger.severe('Lỗi đăng nhập Facebook: $e');

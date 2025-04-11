@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:mangadive/view/screens/admin/admin_screen.dart';
 import 'package:mangadive/view/screens/user/login_logout/login_screen.dart';
 import 'package:mangadive/view/screens/home/home_screen.dart';
 import 'package:mangadive/view/screens/user/login_logout/forgot_password_screen.dart';
@@ -10,6 +9,7 @@ import 'package:mangadive/view/screens/user/main_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_detail_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_read_screen.dart';
 import 'package:mangadive/view/screens/discover/discover_screen.dart';
+
 // Quản lý tất cả routes tại đây
 class AppRoutes {
   static const String home = '/';
@@ -52,15 +52,17 @@ class AppRoutes {
       case forgotPassword:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
 
-      case mainScreen:
-        return MaterialPageRoute(builder: (_) => const MainScreen());
+      case AppRoutes.mainScreen:
+        return MaterialPageRoute(
+          builder: (_) => const MainScreen(initialIndex: 0), // tab Home
+        );
 
       case discover:
         return MaterialPageRoute(builder: (_) => const DiscoverScreen());
       // case bookmark:
       //   return MaterialPageRoute(builder: (_) => const BookmarkScreen());
       case account:
-        return MaterialPageRoute(builder: (_) =>  AccountScreen());
+        return MaterialPageRoute(builder: (_) => AccountScreen());
 
       default:
         return MaterialPageRoute(

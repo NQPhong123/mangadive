@@ -3,16 +3,18 @@ import 'package:mangadive/routes/app_routes.dart';
 import 'package:mangadive/view/widgets/navigation_bar/nav_bar.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int initialIndex;
+
+  const MainScreen({super.key, this.initialIndex = 0});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
 
-  // Khóa Navigator cho từng tab
+  // Keys để giữ navigator stack riêng cho từng tab
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
@@ -20,13 +22,19 @@ class _MainScreenState extends State<MainScreen> {
     GlobalKey<NavigatorState>(),
   ];
 
-  // Các route cho từng tab
+  // Routes tương ứng với từng tab
   final List<String> _tabRoutes = [
     AppRoutes.home,
-    '/discover',
-    '/bookmark',
-    '/account',
+    AppRoutes.discover,
+    AppRoutes.bookmark,
+    AppRoutes.account,
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex;
+  }
 
   void _onItemTapped(int index) {
     setState(() {

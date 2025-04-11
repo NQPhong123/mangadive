@@ -36,7 +36,8 @@ class AuthController extends ChangeNotifier {
         if (context.mounted) {
           Navigator.pushReplacementNamed(
             context,
-            AppRoutes.mainScreen,
+            AppRoutes.account,
+            arguments: {'initialIndex': 0},
           );
         }
       } else {

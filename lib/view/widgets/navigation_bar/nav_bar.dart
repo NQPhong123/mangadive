@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class NavBar extends StatefulWidget {
-  final Function(int) onItemTapped;  // Callback khi icon được bấm
-  final int selectedIndex;  // Vị trí tab hiện tại
+  final Function(int) onItemTapped; // Callback khi icon được bấm
+  final int selectedIndex; // Vị trí tab hiện tại
 
   const NavBar({
     super.key,
@@ -22,6 +22,7 @@ class _NavBarState extends State<NavBar> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
+            // ignore: deprecated_member_use
             color: Colors.black.withOpacity(0.1),
             spreadRadius: 0,
             blurRadius: 10,
@@ -30,7 +31,7 @@ class _NavBarState extends State<NavBar> {
         ],
       ),
       child: BottomNavigationBar(
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Trang chủ',
