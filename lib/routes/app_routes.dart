@@ -4,12 +4,12 @@ import 'package:mangadive/view/screens/admin/admin_screen.dart';
 import 'package:mangadive/view/screens/user/login_logout/login_screen.dart';
 import 'package:mangadive/view/screens/home/home_screen.dart';
 import 'package:mangadive/view/screens/user/login_logout/forgot_password_screen.dart';
-
+import 'package:mangadive/view/screens/user/pages/account/account_screen.dart';
 import 'package:mangadive/view/screens/user/login_logout/register_screen.dart';
 import 'package:mangadive/view/screens/user/main_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_detail_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_read_screen.dart';
-
+import 'package:mangadive/view/screens/discover/discover_screen.dart';
 // Quản lý tất cả routes tại đây
 class AppRoutes {
   static const String home = '/';
@@ -19,6 +19,9 @@ class AppRoutes {
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
   static const String mainScreen = '/main-screen';
+  static const String discover = '/discover';
+  static const String bookmark = '/bookmark';
+  static const String account = '/account';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -51,6 +54,13 @@ class AppRoutes {
 
       case mainScreen:
         return MaterialPageRoute(builder: (_) => const MainScreen());
+
+      case discover:
+        return MaterialPageRoute(builder: (_) => const DiscoverScreen());
+      // case bookmark:
+      //   return MaterialPageRoute(builder: (_) => const BookmarkScreen());
+      case account:
+        return MaterialPageRoute(builder: (_) =>  AccountScreen());
 
       default:
         return MaterialPageRoute(

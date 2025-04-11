@@ -135,6 +135,8 @@ class MangaController extends ChangeNotifier {
       
       _logger.info('Bắt đầu lấy danh sách chapter của truyện: $mangaId');
       final chapters = await _firebaseService.getMangaChapters(mangaId);
+      chapters.sort((a, b) => a.chapterNumber.compareTo(b.chapterNumber));
+
       _logger.info('Đã lấy được ${chapters.length} chapter');
       
       return chapters;

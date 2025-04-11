@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mangadive/view/widgets/home/search_bar.dart';
 import 'package:mangadive/view/widgets/home/banner_widget.dart';
-import 'package:mangadive/view/widgets/home/manga_grid_item.dart';
+import 'package:mangadive/view/widgets/home/manga_card.dart';
 import 'package:mangadive/view/screens/manga/manga_detail_screen.dart';
 import 'package:mangadive/services/firebase_service.dart';
 import 'package:mangadive/models/manga.dart';
-import 'package:mangadive/view/widgets/navigation_bar/nav_bar.dart';
-import 'package:mangadive/view/screens/user/pages/account/account_screen.dart';
 import 'package:mangadive/view/widgets/home/home_tab_item.dart';
-import 'package:mangadive/view/widgets/home/manga_card.dart';
 import 'package:mangadive/view/screens/search/search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -22,7 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirebaseService _firebaseService = FirebaseService();
   bool _isLoading = true;
   List<Manga> _mangas = [];
-  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -36,8 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
       print('Đang tải manga...');
       final mangas = await _firebaseService.getAllManga();
       print('Đã tải xong manga: ${mangas.length} bộ');
-      print(
-          'Manga đầu tiên: ${mangas.isNotEmpty ? mangas.first.title : 'không có'}');
+      print('Manga đầu tiên: ${mangas.isNotEmpty ? mangas.first.title : 'không có'}');
 
       if (mounted) {
         setState(() {
@@ -57,28 +52,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _onNavBarTap(int index) {
-    setState(() => _selectedIndex = index);
-  }
-
-  Widget _buildCurrentScreen() {
-    switch (_selectedIndex) {
-      case 0:
-        return _buildHomeContent();
-      case 1:
-        return const Center(
-            child: Text('Tìm kiếm', style: TextStyle(fontSize: 24)));
-      case 2:
-        return const Center(
-            child: Text('BookMark', style: TextStyle(fontSize: 24)));
-      case 3:
-        return AccountScreen();
-      default:
-        return _buildHomeContent();
-    }
-  }
-
-  Widget _buildHomeContent() {
+  @override
+  Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -97,8 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 CustomSearchBar(
                   onSearch: (query) {
-                    // Handle the search query
-                    // This could navigate to the search screen or perform inline search
                     if (query.isNotEmpty) {
                       Navigator.push(
                         context,
@@ -192,21 +165,9 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
+          // Thêm padding dưới cùng để tránh bị che bởi NavBar
+          const SizedBox(height: 80),
         ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: _buildCurrentScreen(),
-      ),
-      bottomNavigationBar: NavBar(
-        selectedIndex: _selectedIndex,
-        onItemTapped: _onNavBarTap,
       ),
     );
   }
