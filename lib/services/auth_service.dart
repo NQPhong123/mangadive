@@ -289,6 +289,32 @@ class AuthService {
     await _auth.sendPasswordResetEmail(email: email);
   }
 
+// Đổi mật khẩu khi đã đăng nhập
+  Future<void> changePassword(
+      String currentPassword, String newPassword) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('Không có người dùng nào đang đăng nhập.');
+      }
+
+      // Xác thực lại người dùng với mật khẩu hiện tại
+      final credential = firebase_auth.EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // Cập nhật mật khẩu mới
+      await user.updatePassword(newPassword);
+
+      _logger.info('Đổi mật khẩu thành công cho người dùng: ${user.email}');
+    } catch (e) {
+      _logger.severe('Lỗi khi đổi mật khẩu: $e');
+      rethrow;
+    }
+  }
+
   // Cập nhật thông tin user
   Future<void> updateUser(models.User user) async {
     try {

@@ -1,8 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mangadive/controllers/auth_controller.dart';
+import 'package:mangadive/models/user.dart' as models;
+import 'package:mangadive/services/auth_service.dart';
 import 'package:mangadive/view/screens/user/pages/account/edit_profile.dart';
 import 'package:mangadive/view/screens/user/pages/account/reading_history_screen.dart';
+import 'package:mangadive/view/screens/user/pages/change_password.dart';
 import 'package:provider/provider.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -12,9 +15,10 @@ class AccountScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authController = Provider.of<AuthController>(context);
     final user = FirebaseAuth.instance.currentUser;
+    final authService = AuthService(); // Khởi tạo AuthService
 
     if (user == null) {
-      //người dùng chưa đăng nhập thì hiển thị màn hình này
+      // Người dùng chưa đăng nhập thì hiển thị màn hình này
       return Scaffold(
         appBar: AppBar(title: const Text('Tài khoản'), centerTitle: true),
         body: ListView(
@@ -22,16 +26,6 @@ class AccountScreen extends StatelessWidget {
             const UserAccountsDrawerHeader(
               accountName: Text('Khách'),
               accountEmail: Text('Cấp 1'),
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.orange,
-                child: Text(
-                  'Q',
-                  style: TextStyle(
-                    fontSize: 24.0,
-                    color: Color.fromARGB(255, 139, 8, 8),
-                  ),
-                ),
-              ),
             ),
             ListTile(
               leading: const Icon(Icons.login),
@@ -47,7 +41,6 @@ class AccountScreen extends StatelessWidget {
 
     String userName = user.displayName ?? ' ';
 
-    // màn hình account user đã đăng nhập
     return Scaffold(
       appBar: AppBar(title: const Text('Tài khoản'), centerTitle: true),
       body: ListView(
@@ -55,22 +48,28 @@ class AccountScreen extends StatelessWidget {
           UserAccountsDrawerHeader(
             accountName: Text(userName),
             accountEmail: const Text('Cấp 1'),
-            currentAccountPicture: const CircleAvatar(
-              backgroundColor: Colors.orange,
-              child: Text(
-                'Q',
-                style: TextStyle(fontSize: 24.0, color: Colors.white),
-              ),
-            ),
           ),
           ListTile(
             leading: const Icon(Icons.person),
             title: const Text('Thông tin tài khoản'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => EditProfileScreen()),
-              );
+            onTap: () async {
+              // Lấy thông tin user từ AuthService
+              models.User? currentUser =
+                  await authService.getUserById(user.uid);
+              if (currentUser != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProfileScreen(user: currentUser),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Không thể lấy thông tin người dùng'),
+                  ),
+                );
+              }
             },
           ),
           ListTile(
@@ -98,7 +97,12 @@ class AccountScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.lock),
             title: const Text('Đổi mật khẩu'),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ChangePasswordScreen()),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.description),

@@ -1,27 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:mangadive/models/user.dart' as models;
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  final models.User user; // Nhận user từ AccountScreen
+
+  const EditProfileScreen({super.key, required this.user});
 
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController nameController = TextEditingController(
-    text: "Phong Nguyễn Quốc",
-  );
-  final TextEditingController emailController = TextEditingController(
-    text: "nqphong.male1203@gmail.com",
-  );
-  String selectedGender = "Nam";
+  late TextEditingController nameController;
+  late TextEditingController emailController;
+  late String selectedGender;
+
+  @override
+  void initState() {
+    super.initState();
+    // Khởi tạo các controller với dữ liệu từ user
+    nameController = TextEditingController(text: widget.user.username);
+    emailController = TextEditingController(text: widget.user.email);
+    selectedGender =
+        "Nam"; // Giả sử không có trường gender trong model, giữ mặc định
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -38,44 +54,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Center(
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.purple,
-                      child: Text(
-                        "P",
-                        style: TextStyle(fontSize: 40, color: Colors.white),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: CircleAvatar(
-                        radius: 15,
-                        backgroundColor: Colors.blue,
-                        child: Icon(Icons.edit, color: Colors.white, size: 15),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 20),
               buildTextField("Tên", nameController),
               buildTextField("Email", emailController, enabled: false),
-              buildDropdown("Giới tính", ["Nam", "Nữ"], selectedGender, (
-                value,
-              ) {
+              buildDropdown("Giới tính", ["Nam", "Nữ"], selectedGender,
+                  (value) {
                 setState(() => selectedGender = value);
               }),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
-                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 50, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -103,22 +96,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       child: TextField(
         controller: controller,
         enabled: enabled,
-        style: TextStyle(color: Colors.black),
+        style: const TextStyle(color: Colors.black),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Colors.black),
+          labelStyle: const TextStyle(color: Colors.black),
           filled: true,
           fillColor: Colors.white,
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.grey),
+            borderSide: const BorderSide(color: Colors.grey),
             borderRadius: BorderRadius.circular(10),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.blue),
+            borderSide: const BorderSide(color: Colors.blue),
             borderRadius: BorderRadius.circular(10),
           ),
           disabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.grey),
+            borderSide: const BorderSide(color: Colors.grey),
             borderRadius: BorderRadius.circular(10),
           ),
         ),
@@ -137,27 +130,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Colors.black),
+          labelStyle: const TextStyle(color: Colors.black),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Colors.grey),
+            borderSide: const BorderSide(color: Colors.grey),
           ),
         ),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             value: value,
             dropdownColor: Colors.white,
-            icon: Icon(Icons.arrow_drop_down, color: Colors.black),
-            style: TextStyle(color: Colors.black, fontSize: 16),
+            icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
+            style: const TextStyle(color: Colors.black, fontSize: 16),
             onChanged: (String? newValue) {
               if (newValue != null) onChanged(newValue);
             },
-            items:
-                // chuyển từ List<String> sang List<DropdownMenuItem<String>>
-                options.map((String option) {
+            items: options.map((String option) {
               return DropdownMenuItem<String>(
                 value: option,
-                child: Text(option, style: TextStyle(color: Colors.black)),
+                child:
+                    Text(option, style: const TextStyle(color: Colors.black)),
               );
             }).toList(),
           ),
