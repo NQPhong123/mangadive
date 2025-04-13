@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:mangadive/view/widgets/common/search_bar.dart';
 import 'package:mangadive/controllers/manga_controller.dart';
 import 'package:mangadive/models/manga.dart';
 import 'package:mangadive/view/screens/manga/manga_detail_screen.dart';
-import 'package:mangadive/view/widgets/home/search_bar.dart';
+import 'package:mangadive/view/widgets/manga/manga_card.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);

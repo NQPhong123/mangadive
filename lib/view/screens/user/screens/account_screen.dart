@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:mangadive/controllers/auth_controller.dart';
 import 'package:mangadive/models/user.dart' as models;
 import 'package:mangadive/services/auth_service.dart';
-import 'package:mangadive/view/screens/user/pages/account/edit_profile.dart';
-import 'package:mangadive/view/screens/user/pages/account/reading_history_screen.dart';
-import 'package:mangadive/view/screens/user/pages/change_password.dart';
+import 'package:mangadive/view/screens/user/screens/edit_profile_screen.dart';
+import 'package:mangadive/view/screens/user/screens/reading_history_screen.dart';
+import 'package:mangadive/view/screens/user/screens/change_password_screen.dart';
 import 'package:provider/provider.dart';
 
 class AccountScreen extends StatelessWidget {
