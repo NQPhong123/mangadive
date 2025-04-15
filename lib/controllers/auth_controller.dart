@@ -3,11 +3,42 @@ import 'package:mangadive/routes/app_routes.dart';
 import 'package:mangadive/services/auth_service.dart';
 import 'package:logging/logging.dart';
 import 'package:mangadive/utils/validators.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mangadive/models/user.dart' as models;
 
 class AuthController extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final _logger = Logger('AuthController');
-  bool isLoading = false;
+  models.User? _userProfile;
+  bool _isLoading = false;
+
+  // Getters
+  User? get currentUser => _auth.currentUser;
+  models.User? get userProfile => _userProfile;
+  bool get isLoading => _isLoading;
+
+  AuthController() {
+    _init();
+  }
+
+  void _init() {
+    _auth.authStateChanges().listen((User? user) {
+      if (user != null) {
+        _loadUserProfile();
+      } else {
+        _userProfile = null;
+      }
+      notifyListeners();
+    });
+  }
+
+  Future<void> _loadUserProfile() async {
+    if (currentUser != null) {
+      _userProfile = await _authService.getUserById(currentUser!.uid);
+      notifyListeners();
+    }
+  }
 
   // xử lý đăng nhập
   Future<void> login(
@@ -22,7 +53,7 @@ class AuthController extends ChangeNotifier {
       return;
     }
 
-    isLoading = true;
+    _isLoading = true;
     notifyListeners(); // Cập nhật UI
 
     try {
@@ -56,7 +87,7 @@ class AuthController extends ChangeNotifier {
         ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
       }
     } finally {
-      isLoading = false;
+      _isLoading = false;
       notifyListeners();
     }
   }
@@ -74,7 +105,7 @@ class AuthController extends ChangeNotifier {
       return;
     }
 
-    isLoading = true;
+    _isLoading = true;
     notifyListeners();
 
     try {
@@ -93,7 +124,7 @@ class AuthController extends ChangeNotifier {
       }
     }
 
-    isLoading = false;
+    _isLoading = false;
     notifyListeners();
   }
 
@@ -111,5 +142,72 @@ class AuthController extends ChangeNotifier {
       );
     }
     notifyListeners();
+  }
+
+  Future<void> signIn(String email, String password, BuildContext context) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      await _authService.signIn(email, password);
+      Navigator.pushReplacementNamed(context, '/');
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> signUp(String email, String password, String username, BuildContext context) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      await _authService.signUpUser(email, password, username);
+      Navigator.pushReplacementNamed(context, '/');
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateProfile(models.User updatedUser) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      await _authService.updateUser(updatedUser);
+      _userProfile = updatedUser;
+
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      await _authService.changePassword(currentPassword, newPassword);
+
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

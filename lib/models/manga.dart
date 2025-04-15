@@ -16,7 +16,7 @@ class Manga {
   final bool isPremium;
   final double price;
   final int lastChapterNumber;
-  final int popularityScore;
+  final double popularityScore;
   final List<String> searchKeywords;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -61,7 +61,7 @@ class Manga {
         isPremium: map['isPremium'] as bool? ?? false,
         price: (map['price'] as num?)?.toDouble() ?? 0.0,
         lastChapterNumber: map['lastChapterNumber'] as int? ?? 0,
-        popularityScore: map['popularity_score'] as int? ?? 0,
+        popularityScore: (map['popularity_score'] as num?)?.toDouble() ?? 0.0,
         searchKeywords: List<String>.from(map['search_keywords'] as List? ?? []),
         createdAt: map['createdAt'] is Timestamp
             ? (map['createdAt'] as Timestamp).toDate()
@@ -124,7 +124,7 @@ class Manga {
     bool? isPremium,
     double? price,
     int? lastChapterNumber,
-    int? popularityScore,
+    double? popularityScore,
     List<String>? searchKeywords,
     DateTime? createdAt,
     DateTime? updatedAt,

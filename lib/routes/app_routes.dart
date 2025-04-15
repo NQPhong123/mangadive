@@ -5,56 +5,76 @@ import 'package:mangadive/view/screens/home/home_screen.dart';
 import 'package:mangadive/view/screens/user/screens/forgot_password_screen.dart';
 import 'package:mangadive/view/screens/user/screens/account_screen.dart';
 import 'package:mangadive/view/screens/user/screens/register_screen.dart';
-import 'package:mangadive/view/screens/user/main_screen.dart';
+import 'package:mangadive/view/screens/main_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_detail_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_read_screen.dart';
 import 'package:mangadive/view/screens/discover/discover_screen.dart';
 
 // Quản lý tất cả routes tại đây
 class AppRoutes {
-  static const String home = '/';
-  static const String mangaDetail = '/manga/detail';
-  static const String mangaRead = '/manga/read';
+  // Main routes
+  static const String initial = '/';
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
+  static const String mangaDetail = '/manga/detail';
+  static const String mangaRead = '/manga/read';
   static const String mainScreen = '/main-screen';
   static const String discover = '/discover';
   static const String bookmark = '/bookmark';
   static const String account = '/account';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
+    final args = settings.arguments as Map<String, dynamic>?;
+
     switch (settings.name) {
-      case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+      case initial:
+        return MaterialPageRoute(
+          builder: (_) => const MainScreen(),
+        );
+
+      case login:
+        return MaterialPageRoute(
+          builder: (_) => const LoginScreen(),
+          fullscreenDialog: true,
+        );
+
+      case register:
+        return MaterialPageRoute(
+          builder: (_) => const RegisterScreen(),
+          fullscreenDialog: true,
+        );
+
+      case forgotPassword:
+        return MaterialPageRoute(
+          builder: (_) => const ForgotPasswordScreen(),
+          fullscreenDialog: true,
+        );
 
       case mangaDetail:
-        final args = settings.arguments as Map<String, dynamic>;
+        if (args == null || args['mangaId'] == null) {
+          return _errorRoute('Thiếu thông tin manga');
+        }
         return MaterialPageRoute(
           builder: (_) => MangaDetailScreen(mangaId: args['mangaId']),
+          fullscreenDialog: true,
         );
 
       case mangaRead:
-        final args = settings.arguments as Map<String, dynamic>;
+        if (args == null || args['mangaId'] == null || args['chapterId'] == null) {
+          return _errorRoute('Thiếu thông tin chapter');
+        }
         return MaterialPageRoute(
           builder: (_) => MangaReadScreen(
             mangaId: args['mangaId'],
             chapterId: args['chapterId'],
           ),
+          fullscreenDialog: true,
         );
 
-      case login:
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
-
-      case register:
-        return MaterialPageRoute(builder: (_) => const RegisterScreen());
-
-      case forgotPassword:
-        return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
-
-      case AppRoutes.mainScreen:
+      case mainScreen:
         return MaterialPageRoute(
-          builder: (_) => const MainScreen(initialIndex: 0), // tab Home
+          builder: (_) => const MainScreen(),
         );
 
       case discover:
@@ -65,13 +85,17 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => AccountScreen());
 
       default:
-        return MaterialPageRoute(
-          builder: (_) => Scaffold(
-            body: Center(
-              child: Text('Không tìm thấy trang ${settings.name}'),
-            ),
-          ),
-        );
+        return _errorRoute('Không tìm thấy trang ${settings.name}');
     }
+  }
+
+  static Route<dynamic> _errorRoute(String message) {
+    return MaterialPageRoute(
+      builder: (_) => Scaffold(
+        body: Center(
+          child: Text(message),
+        ),
+      ),
+    );
   }
 }

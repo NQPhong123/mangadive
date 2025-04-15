@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:logging/logging.dart';
-
+import 'package:provider/provider.dart';
 import 'package:mangadive/routes/app_routes.dart';
 import 'package:mangadive/constants/app_constants.dart';
-
-import 'package:provider/provider.dart';
-import 'package:mangadive/controllers/auth_controller.dart'; // Import AuthController
+import 'package:mangadive/controllers/auth_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +24,6 @@ void main() async {
 
     // Initialize Firebase App Check
     await FirebaseAppCheck.instance.activate(
-      // Use debug provider for development
       androidProvider: AndroidProvider.debug,
       appleProvider: AppleProvider.debug,
     );
@@ -35,6 +32,9 @@ void main() async {
   } catch (e) {
     logger.severe('Failed to initialize Firebase: $e');
   }
+
+  // Disable Provider debug checks in production
+  // Provider.debugCheckInvalidValueType = null;
 
   runApp(const MyApp());
 }
@@ -46,20 +46,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<AuthController>(
-          create: (_) =>
-              AuthController(), // Initialize your AuthController here
+        ChangeNotifierProvider(
+          create: (_) => AuthController(),
         ),
-        // Add other providers here if needed in the future
       ],
       child: MaterialApp(
         title: AppConstants.appName,
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
+          primarySwatch: Colors.blue,
         ),
-        initialRoute: AppRoutes.mainScreen,
         onGenerateRoute: AppRoutes.generateRoute,
+        initialRoute: AppRoutes.initial,
       ),
     );
   }

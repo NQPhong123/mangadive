@@ -117,15 +117,19 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: CircularProgressIndicator()),
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_manga == null) {
       return Scaffold(
-        appBar: AppBar(),
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
         body: Center(child: Text(AppConstants.errorLoadingManga)),
       );
     }
@@ -136,6 +140,10 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 children: [
@@ -177,14 +185,6 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 16,
-                    left: 8,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
                 ],
