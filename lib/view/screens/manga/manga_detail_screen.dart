@@ -45,6 +45,14 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
 
       if (manga != null) {
         print('Loaded manga: ${manga.title}');
+        
+        // Kiểm tra trạng thái follow
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          _isFollowing = await _mangaController.isFollowingManga(user.uid, manga.id);
+          print('Follow status: $_isFollowing');
+        }
+
         if (mounted) {
           final filteredChapters =
               chapters.where((c) => c.chapterNumber > 0).toList();
@@ -61,6 +69,7 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
         throw Exception(AppConstants.errorLoadingManga);
       }
     } catch (e) {
+      print('Error loading manga data: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
@@ -87,7 +96,6 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
       setState(() => _isFollowingLoading = true);
 
       final user = FirebaseAuth.instance.currentUser;
-
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -95,22 +103,30 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
         );
         return;
       }
+
       final userId = user.uid;
       if (_isFollowing) {
         await _mangaController.unfollowManga(userId, _manga!.id);
+        print('Đã hủy theo dõi truyện: ${_manga!.title}');
       } else {
         await _mangaController.followManga(userId, _manga!.id);
+        print('Đã theo dõi truyện: ${_manga!.title}');
       }
 
-      setState(() {
-        _isFollowing = !_isFollowing;
-        _isFollowingLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isFollowing = !_isFollowing;
+          _isFollowingLoading = false;
+        });
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e')),
-      );
-      setState(() => _isFollowingLoading = false);
+      print('Lỗi khi thay đổi trạng thái follow: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: $e')),
+        );
+        setState(() => _isFollowingLoading = false);
+      }
     }
   }
 

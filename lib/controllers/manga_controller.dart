@@ -8,6 +8,7 @@ import 'package:mangadive/models/category.dart';
 import 'package:mangadive/services/firebase_service.dart';
 import 'package:mangadive/constants/app_constants.dart';
 import 'package:logging/logging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MangaController extends ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
@@ -179,16 +180,29 @@ class MangaController extends ChangeNotifier {
   // Theo dõi truyện
   Future<void> followManga(String userId, String mangaId) async {
     try {
-      _logger.info('Bắt đầu theo dõi truyện: $mangaId');
-      await _firebaseService.addToFavorites(mangaId);
-      _logger.info('Đã theo dõi truyện thành công');
+      final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+      final followsRef = userRef.collection('follows').doc(mangaId);
       
-      // Cập nhật lại thông tin truyện hiện tại
-      if (currentManga != null && currentManga!.id == mangaId) {
-        await getManga(mangaId);
-      }
+      final follow = Follow(
+        mangaId: mangaId,
+        lastReadChapter: ChapterProgress(chapterNumber: 0, readAt: DateTime.now()),
+        totalReadChapters: 0,
+        totalReadingTime: 0,
+        lastReadAt: DateTime.now(),
+        createdAt: DateTime.now(),
+      );
+
+      await followsRef.set(follow.toMap());
+      
+      // Update manga's total followers
+      await FirebaseFirestore.instance
+          .collection('mangas')
+          .doc(mangaId)
+          .update({
+        'totalFollowers': FieldValue.increment(1),
+      });
     } catch (e) {
-      _logger.severe('Lỗi khi theo dõi truyện: $e');
+      print('Error following manga: $e');
       rethrow;
     }
   }
@@ -196,16 +210,61 @@ class MangaController extends ChangeNotifier {
   // Hủy theo dõi truyện
   Future<void> unfollowManga(String userId, String mangaId) async {
     try {
-      _logger.info('Bắt đầu hủy theo dõi truyện: $mangaId');
-      await _firebaseService.removeFromFavorites(mangaId);
-      _logger.info('Đã hủy theo dõi truyện thành công');
+      final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+      final followsRef = userRef.collection('follows').doc(mangaId);
       
-      // Cập nhật lại thông tin truyện hiện tại
-      if (currentManga != null && currentManga!.id == mangaId) {
-        await getManga(mangaId);
-      }
+      await followsRef.delete();
+      
+      // Update manga's total followers
+      await FirebaseFirestore.instance
+          .collection('mangas')
+          .doc(mangaId)
+          .update({
+        'totalFollowers': FieldValue.increment(-1),
+      });
     } catch (e) {
-      _logger.severe('Lỗi khi hủy theo dõi truyện: $e');
+      print('Error unfollowing manga: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> isFollowingManga(String userId, String mangaId) async {
+    try {
+      final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+      final followsRef = userRef.collection('follows').doc(mangaId);
+      
+      final doc = await followsRef.get();
+      return doc.exists;
+    } catch (e) {
+      print('Error checking follow status: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Follow>> getUserFollows(String userId) async {
+    try {
+      _logger.info('Bắt đầu lấy danh sách follows cho user: $userId');
+      
+      final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+      final followsRef = userRef.collection('follows');
+      
+      final querySnapshot = await followsRef.get();
+      _logger.info('Số lượng follows: ${querySnapshot.docs.length}');
+      
+      final follows = querySnapshot.docs.map((doc) {
+        try {
+          return Follow.fromFirestore(doc);
+        } catch (e) {
+          _logger.severe('Lỗi khi chuyển đổi follow: $e');
+          _logger.severe('Dữ liệu gốc: ${doc.data()}');
+          rethrow;
+        }
+      }).toList();
+      
+      _logger.info('Đã lấy được ${follows.length} follows');
+      return follows;
+    } catch (e) {
+      _logger.severe('Lỗi khi lấy danh sách follows: $e');
       rethrow;
     }
   }
