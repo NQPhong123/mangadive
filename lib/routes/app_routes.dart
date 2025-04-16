@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
-import 'package:mangadive/view/screens/user/screens/login_screen.dart';
+import 'package:mangadive/view/screens/user/login_screen.dart';
 import 'package:mangadive/view/screens/home/home_screen.dart';
-import 'package:mangadive/view/screens/user/screens/forgot_password_screen.dart';
-import 'package:mangadive/view/screens/user/screens/account_screen.dart';
-import 'package:mangadive/view/screens/user/screens/register_screen.dart';
+import 'package:mangadive/view/screens/user/forgot_password_screen.dart';
+import 'package:mangadive/view/screens/user/account_screen.dart';
+import 'package:mangadive/view/screens/user/register_screen.dart';
 import 'package:mangadive/view/screens/main_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_detail_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_read_screen.dart';
 import 'package:mangadive/view/screens/discover/discover_screen.dart';
+import 'package:mangadive/view/screens/user/notification_screen.dart';
 
 // Quản lý tất cả routes tại đây
 class AppRoutes {
@@ -23,6 +24,9 @@ class AppRoutes {
   static const String discover = '/discover';
   static const String bookmark = '/bookmark';
   static const String account = '/account';
+  static const String library = '/library';
+  static const String notification = '/notification';
+
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final args = settings.arguments as Map<String, dynamic>?;

@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:mangadive/controllers/auth_controller.dart';
 import 'package:mangadive/models/user.dart' as models;
 import 'package:mangadive/services/auth_service.dart';
-import 'package:mangadive/view/screens/user/screens/edit_profile_screen.dart';
-import 'package:mangadive/view/screens/user/screens/reading_history_screen.dart';
-import 'package:mangadive/view/screens/user/screens/change_password_screen.dart';
+import 'package:mangadive/view/screens/user/edit_profile_screen.dart';
+import 'package:mangadive/view/screens/user/reading_history_screen.dart';
+import 'package:mangadive/view/screens/user/change_password_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:mangadive/view/screens/user/notification_screen.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
@@ -81,7 +82,14 @@ class AccountScreen extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.notifications),
                 title: const Text('Thông báo của bạn'),
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationScreen(),
+                    ),
+                  );
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.lock),

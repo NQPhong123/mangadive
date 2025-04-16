@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/form/register_form.dart';
+import 'package:mangadive/view/widgets/form/register_form.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});

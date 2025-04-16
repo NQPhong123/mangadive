@@ -46,6 +46,34 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
+  Future<void> _deleteNotification(UserNotification notification) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      await _notificationController.deleteNotification(user.uid, notification.id);
+      setState(() {
+        _notifications.remove(notification);
+      });
+    } catch (e) {
+      print('Lỗi khi xóa thông báo: $e');
+    }
+  }
+
+  Future<void> _deleteAllNotifications() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      await _notificationController.deleteAllNotifications(user.uid);
+      setState(() {
+        _notifications.clear();
+      });
+    } catch (e) {
+      print('Lỗi khi xóa tất cả thông báo: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,12 +81,32 @@ class _NotificationScreenState extends State<NotificationScreen> {
         title: const Text('Thông báo'),
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_sweep),
-            onPressed: () {
-              // TODO: Xóa tất cả thông báo
-            },
-          ),
+          if (_notifications.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_sweep),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Xóa tất cả thông báo'),
+                    content: const Text('Bạn có chắc chắn muốn xóa tất cả thông báo?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Hủy'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _deleteAllNotifications();
+                        },
+                        child: const Text('Xóa'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
         ],
       ),
       body: _isLoading
@@ -96,9 +144,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           color: Colors.white,
         ),
       ),
-      onDismissed: (direction) {
-        // TODO: Xóa thông báo
-      },
+      onDismissed: (direction) => _deleteNotification(notification),
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         color: isNew ? Colors.blue.shade50 : null,
