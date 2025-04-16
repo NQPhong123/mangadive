@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mangadive/view/screens/home/home_screen.dart';
-import 'package:mangadive/view/screens/discover/discover_screen.dart';
+import 'package:mangadive/view/screens/community/community_screen.dart';
 import 'package:mangadive/view/screens/library/library_screen.dart';
 import 'package:mangadive/view/screens/user/account_screen.dart';
-import 'package:mangadive/view/screens/test/notification_test_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -17,10 +16,9 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const DiscoverScreen(),
+    const CommunityScreen(),
     const LibraryScreen(),
-    const AccountScreen(),
-    const NotificationTestScreen(),
+    AccountScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -43,8 +41,8 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Trang chủ',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: 'Khám phá',
+            icon: Icon(Icons.people),
+            label: 'Cộng đồng',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.library_books),
@@ -53,10 +51,6 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Tài khoản',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Test',
           ),
         ],
         currentIndex: _selectedIndex,

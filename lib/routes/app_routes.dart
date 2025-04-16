@@ -8,7 +8,6 @@ import 'package:mangadive/view/screens/user/register_screen.dart';
 import 'package:mangadive/view/screens/main_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_detail_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_read_screen.dart';
-import 'package:mangadive/view/screens/discover/discover_screen.dart';
 import 'package:mangadive/view/screens/user/notification_screen.dart';
 
 // Quản lý tất cả routes tại đây
@@ -21,7 +20,6 @@ class AppRoutes {
   static const String mangaDetail = '/manga/detail';
   static const String mangaRead = '/manga/read';
   static const String mainScreen = '/main-screen';
-  static const String discover = '/discover';
   static const String bookmark = '/bookmark';
   static const String account = '/account';
   static const String library = '/library';
@@ -81,8 +79,6 @@ class AppRoutes {
           builder: (_) => const MainScreen(),
         );
 
-      case discover:
-        return MaterialPageRoute(builder: (_) => const DiscoverScreen());
       // case bookmark:
       //   return MaterialPageRoute(builder: (_) => const BookmarkScreen());
       case account:

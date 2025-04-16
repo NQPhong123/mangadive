@@ -197,3 +197,74 @@ CÁC TÍNH NĂNG ĐƯỢC HỖ TRỢ:
    - Quản lý thể loại
    - Quản lý tag
    - Thống kê số lượng 
+
+
+   // Trong collection: mangas/{mangaId}/chapters/{chapterNumber}
+{
+  "chapter_number": "number",
+  "created_at": "timestamp",
+  "likes": "number",
+  "pages": [
+    {
+      "image_url": "string (URL)",
+      "page_number": "number"
+    }
+  ],
+  // Thêm các trường mới
+  "total_comments": "number",      // Tổng số comments (bao gồm cả replies)
+  "last_comment_at": "timestamp"   // Thời gian comment cuối cùng
+}
+
+// Collection mới: mangas/{mangaId}/chapters/{chapterNumber}/comments
+{
+  "id": "string",
+  "user_id": "string",
+  "content": "string",
+  "created_at": "timestamp",
+  "updated_at": "timestamp",
+  "likes": "number",
+  "replies_count": "number",       // Số lượng replies
+  "status": "string",             // active/deleted/hidden
+  "page_number": "number",        // Số trang đang comment (optional)
+  "mentions": ["array of userIds"], // Danh sách user được tag
+  "is_spoiler": "boolean"         // Đánh dấu spoiler
+}
+
+// Subcollection: .../comments/{commentId}/likes
+{
+  "user_id": "string",
+  "created_at": "timestamp"
+}
+
+// Subcollection: .../comments/{commentId}/replies
+{
+  "id": "string",
+  "user_id": "string",
+  "content": "string",
+  "created_at": "timestamp",
+  "updated_at": "timestamp",
+  "likes": "number",
+  "status": "string",             // active/deleted/hidden
+  "reply_to": {                   // Thông tin comment/reply được trả lời
+    "id": "string",              // ID của comment/reply gốc
+    "user_id": "string"          // ID của user được trả lời
+  },
+  "mentions": ["array of userIds"] // Danh sách user được tag
+}
+
+// Subcollection: .../comments/{commentId}/replies/{replyId}/likes
+{
+  "user_id": "string",
+  "created_at": "timestamp"
+}
+
+// Thêm vào subcollection users/{userId}/interactions
+{
+  "type": "string",              // comment/reply/like
+  "manga_id": "string",
+  "chapter_number": "number",
+  "comment_id": "string",        // ID của comment hoặc reply
+  "created_at": "timestamp",
+  "content": "string",           // Nội dung comment/reply (để dễ truy xuất)
+  "status": "string"            // active/deleted/hidden
+}
