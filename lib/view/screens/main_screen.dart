@@ -3,6 +3,7 @@ import 'package:mangadive/view/screens/home/home_screen.dart';
 import 'package:mangadive/view/screens/community/community_screen.dart';
 import 'package:mangadive/view/screens/library/library_screen.dart';
 import 'package:mangadive/view/screens/user/account_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -13,22 +14,39 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  late String _currentUserId;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const CommunityScreen(),
-    const LibraryScreen(),
-    AccountScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentUserId();
+  }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  void _getCurrentUserId() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      _currentUserId = user.uid;
+    } else {
+      // Fallback nếu chưa đăng nhập hoặc error
+      _currentUserId = 'anonymous_user';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _screens = [
+      const HomeScreen(),
+      CommunityScreen(currentUserId: _currentUserId),
+      const LibraryScreen(),
+      AccountScreen(),
+    ];
+
+    void _onItemTapped(int index) {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
+
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,

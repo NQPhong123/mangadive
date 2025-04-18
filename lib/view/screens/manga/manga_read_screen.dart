@@ -6,15 +6,22 @@ import 'package:mangadive/utils/string_utils.dart';
 import 'package:mangadive/services/firebase_service.dart';
 import 'package:mangadive/services/reading_history_service.dart';
 import 'package:mangadive/view/screens/manga/manga_detail_screen.dart';
+import 'package:mangadive/controllers/comment_controller.dart';
+import 'package:mangadive/models/comment.dart';
+import 'package:mangadive/view/widgets/comment/comment_item.dart';
+import 'package:mangadive/view/widgets/comment/comment_input.dart';
+import 'package:mangadive/models/reply.dart';
 
 class MangaReadScreen extends StatefulWidget {
   final String mangaId;
   final String chapterId;
+  final String currentUserId;
 
   const MangaReadScreen({
     super.key,
     required this.mangaId,
     required this.chapterId,
+    required this.currentUserId,
   });
 
   @override
@@ -25,11 +32,14 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
   final MangaController _mangaController = MangaController();
   final ScrollController _scrollController = ScrollController();
   final ReadingHistoryService _readingHistoryService = ReadingHistoryService();
+  final CommentController _commentController = CommentController();
   bool _isLoading = true;
   List<String> _pages = [];
   int _currentPage = 0;
   List<Chapter> _chapters = [];
   String _currentChapterId = '';
+  String? _replyingToCommentId;
+  ReplyTo? _replyingTo;
 
   @override
   void initState() {
@@ -130,6 +140,8 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
       _isLoading = true;
       _pages = [];
       _currentPage = 0;
+      _replyingToCommentId = null;
+      _replyingTo = null;
     });
     _loadMangaData();
     _incrementView();
@@ -187,6 +199,16 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
     );
   }
 
+  void _handleReply(String commentId, String userId) {
+    setState(() {
+      _replyingToCommentId = commentId;
+      _replyingTo = ReplyTo(
+        id: commentId,
+        userId: userId,
+      );
+    });
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -196,6 +218,10 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
   @override
   Widget build(BuildContext context) {
     final currentIndex = _chapters.indexWhere((c) => c.id == _currentChapterId);
+    final source = CommentSource(
+      chapterId: _currentChapterId,
+      mangaId: widget.mangaId,
+    );
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -291,7 +317,84 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.comment_outlined),
-                    onPressed: null,
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) => Container(
+                          height: MediaQuery.of(context).size.height * 0.8,
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Bình luận',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.close),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                ],
+                              ),
+                              const Divider(),
+                              Expanded(
+                                child: StreamBuilder<List<Comment>>(
+                                  stream: _commentController.getComments(
+                                    source: source,
+                                  ),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasError) {
+                                      return Center(
+                                        child: Text('Error: ${snapshot.error}'),
+                                      );
+                                    }
+
+                                    if (!snapshot.hasData) {
+                                      return const Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+
+                                    final comments = snapshot.data!;
+                                    return ListView.builder(
+                                      itemCount: comments.length,
+                                      itemBuilder: (context, index) {
+                                        final comment = comments[index];
+                                        return CommentItem(
+                                          comment: comment,
+                                          currentUserId: widget.currentUserId,
+                                          onReply: (commentId) {
+                                            _handleReply(commentId, comment.userId);
+                                          },
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                              CommentInput(
+                                userId: widget.currentUserId,
+                                source: source,
+                                replyToCommentId: _replyingToCommentId,
+                                replyTo: _replyingTo,
+                                onSubmitted: () {
+                                  setState(() {
+                                    _replyingToCommentId = null;
+                                    _replyingTo = null;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

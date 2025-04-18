@@ -198,24 +198,7 @@ CÁC TÍNH NĂNG ĐƯỢC HỖ TRỢ:
    - Quản lý tag
    - Thống kê số lượng 
 
-
-   // Trong collection: mangas/{mangaId}/chapters/{chapterNumber}
-{
-  "chapter_number": "number",
-  "created_at": "timestamp",
-  "likes": "number",
-  "pages": [
-    {
-      "image_url": "string (URL)",
-      "page_number": "number"
-    }
-  ],
-  // Thêm các trường mới
-  "total_comments": "number",      // Tổng số comments (bao gồm cả replies)
-  "last_comment_at": "timestamp"   // Thời gian comment cuối cùng
-}
-
-// Collection mới: mangas/{mangaId}/chapters/{chapterNumber}/comments
+// Collection comments - Tập trung quản lý tất cả comments
 {
   "id": "string",
   "user_id": "string",
@@ -223,20 +206,28 @@ CÁC TÍNH NĂNG ĐƯỢC HỖ TRỢ:
   "created_at": "timestamp",
   "updated_at": "timestamp",
   "likes": "number",
-  "replies_count": "number",       // Số lượng replies
-  "status": "string",             // active/deleted/hidden
-  "page_number": "number",        // Số trang đang comment (optional)
-  "mentions": ["array of userIds"], // Danh sách user được tag
-  "is_spoiler": "boolean"         // Đánh dấu spoiler
+  "replies_count": "number",
+  "status": "string",              // active/deleted/hidden
+  "mentions": ["array of userIds"],
+  "is_spoiler": "boolean",
+  
+  // Thông tin về nguồn comment
+  "source": {
+    "type": "string",              // 'chapter' hoặc 'post'
+    "manga_id": "string",          // (optional) nếu type là chapter
+    "chapter_number": "number",    // (optional) nếu type là chapter
+    "page_number": "number",       // (optional) nếu type là chapter
+    "post_id": "string"           // (optional) nếu type là post
+  }
 }
 
-// Subcollection: .../comments/{commentId}/likes
+// Subcollection: comments/{commentId}/likes
 {
   "user_id": "string",
   "created_at": "timestamp"
 }
 
-// Subcollection: .../comments/{commentId}/replies
+// Subcollection: comments/{commentId}/replies
 {
   "id": "string",
   "user_id": "string",
@@ -244,27 +235,63 @@ CÁC TÍNH NĂNG ĐƯỢC HỖ TRỢ:
   "created_at": "timestamp",
   "updated_at": "timestamp",
   "likes": "number",
-  "status": "string",             // active/deleted/hidden
-  "reply_to": {                   // Thông tin comment/reply được trả lời
-    "id": "string",              // ID của comment/reply gốc
+  "status": "string",
+  "reply_to": {
+    "id": "string",               // ID của comment/reply gốc
     "user_id": "string"          // ID của user được trả lời
   },
-  "mentions": ["array of userIds"] // Danh sách user được tag
+  "mentions": ["array of userIds"]
 }
 
-// Subcollection: .../comments/{commentId}/replies/{replyId}/likes
+// Collection posts - Bài đăng của user
 {
+  "id": "string",
   "user_id": "string",
-  "created_at": "timestamp"
+  "title": "string",
+  "content": "string",
+  "created_at": "timestamp",
+  "updated_at": "timestamp",
+  "likes": "number",
+  "comments_count": "number",      // Tổng số comments
+  "last_activity_at": "timestamp",
+  "status": "string",             // active/deleted/hidden
+  "tags": ["array of strings"],
+  "manga_ref": {                  // (optional) nếu post liên quan đến manga
+    "manga_id": "string",
+    "chapter_number": "number"
+  }
 }
 
-// Thêm vào subcollection users/{userId}/interactions
+// Collection chapters_stats - Thống kê cho chapters
 {
-  "type": "string",              // comment/reply/like
   "manga_id": "string",
   "chapter_number": "number",
-  "comment_id": "string",        // ID của comment hoặc reply
+  "comments_count": "number",      // Tổng số comments
+  "last_comment_at": "timestamp"
+}
+
+// Collection users/{userId}/interactions - Lưu tất cả tương tác của user
+{
+  "id": "string",
+  "type": "string",               // comment/reply/like
+  "content": "string",            // nội dung nếu là comment/reply
   "created_at": "timestamp",
-  "content": "string",           // Nội dung comment/reply (để dễ truy xuất)
-  "status": "string"            // active/deleted/hidden
+  "status": "string",             // active/deleted/hidden
+  
+  // Thông tin về nguồn tương tác
+  "source": {
+    "type": "string",             // 'chapter', 'post', hoặc 'comment'
+    "manga_id": "string",         // (optional)
+    "chapter_number": "number",   // (optional)
+    "post_id": "string",         // (optional)
+    "comment_id": "string"       // ID của comment hoặc reply được tương tác
+  }
+}
+
+// Collection users/{userId}/posts - Lưu trữ bài đăng của user
+{
+  "post_id": "string",
+  "created_at": "timestamp",
+  "last_activity_at": "timestamp",
+  "status": "string"              // active/deleted/hidden
 }

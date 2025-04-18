@@ -80,12 +80,16 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
   }
 
   void _readManga(int chapterNumber) {
+    final user = FirebaseAuth.instance.currentUser;
+    final userId = user?.uid ?? 'anonymous_user';
+    
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => MangaReadScreen(
           mangaId: _manga!.id,
           chapterId: chapterNumber.toString(),
+          currentUserId: userId,
         ),
       ),
     );
