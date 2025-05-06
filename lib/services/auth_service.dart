@@ -1,5 +1,5 @@
 import "package:firebase_auth/firebase_auth.dart" as firebase_auth;
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mangadive/models/user.dart' as models;
@@ -215,70 +215,6 @@ class AuthService {
       }
     } catch (e) {
       _logger.severe('Lỗi khi đăng nhập Google: $e');
-      rethrow;
-    }
-    return null;
-  }
-
-  // Đăng nhập bằng Facebook
-  Future<models.User?> signInWithFacebook() async {
-    try {
-      final LoginResult loginResult = await FacebookAuth.instance.login();
-
-      if (loginResult.status == LoginStatus.success) {
-        final credential = firebase_auth.FacebookAuthProvider.credential(
-          loginResult.accessToken!.token,
-        );
-
-        final userCredential = await _auth.signInWithCredential(credential);
-        if (userCredential.user != null) {
-          final userDoc = await _firestore
-              .collection(AppConstants.usersCollection)
-              .doc(userCredential.user!.uid)
-              .get();
-
-          if (!userDoc.exists) {
-            final user = models.User(
-              id: userCredential.user!.uid,
-              email: userCredential.user!.email!,
-              username: userCredential.user!.displayName ?? 'User',
-              experience: 0, // Giá trị mặc định
-              totalReadChapters: 0, // Giá trị mặc định
-              premium: false, // Giá trị mặc định
-              createdAt: DateTime.now(),
-              lastLogin: DateTime.now(),
-              settings: models.UserSettings(
-                theme: 'light',
-                language: 'vi',
-                notification: models.NotificationSettings(
-                  newChapter: true,
-                  system: true,
-                ),
-                reading: models.ReadingSettings(
-                  defaultQuality: 'high',
-                  defaultDirection: 'vertical',
-                ),
-              ),
-            );
-
-            await _firestore
-                .collection(AppConstants.usersCollection)
-                .doc(user.id)
-                .set(user.toMap());
-
-            return user;
-          } else {
-            await _firestore
-                .collection(AppConstants.usersCollection)
-                .doc(userCredential.user!.uid)
-                .update({'lastLogin': FieldValue.serverTimestamp()});
-
-            return await getUserById(userCredential.user!.uid);
-          }
-        }
-      }
-    } catch (e) {
-      _logger.severe('Lỗi đăng nhập Facebook: $e');
       rethrow;
     }
     return null;

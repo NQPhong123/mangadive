@@ -7,6 +7,7 @@ class User {
   final int experience;
   final int totalReadChapters;
   final bool premium;
+  final int mangaCoin; // ✅ Thêm mới
   final DateTime createdAt;
   final DateTime lastLogin;
   final UserSettings settings;
@@ -15,9 +16,10 @@ class User {
     required this.id,
     required this.email,
     required this.username,
-    this.experience = 0, // Giá trị mặc định là 0
-    this.totalReadChapters = 0, // Giá trị mặc định là 0
-    this.premium = false, // Giá trị mặc định là false
+    this.experience = 0,
+    this.totalReadChapters = 0,
+    this.premium = false,
+    this.mangaCoin = 0, // ✅ Mặc định 0
     required this.createdAt,
     required this.lastLogin,
     required this.settings,
@@ -28,10 +30,10 @@ class User {
       id: map['id'] as String? ?? '',
       email: map['email'] as String? ?? '',
       username: map['username'] as String? ?? '',
-      experience: map['experience'] as int? ?? 0, // Giá trị mặc định là 0
-      totalReadChapters:
-          map['totalReadChapters'] as int? ?? 0, // Giá trị mặc định là 0
-      premium: map['premium'] as bool? ?? false, // Giá trị mặc định là false
+      experience: map['experience'] as int? ?? 0,
+      totalReadChapters: map['totalReadChapters'] as int? ?? 0,
+      premium: map['premium'] as bool? ?? false,
+      mangaCoin: map['mangaCoin'] as int? ?? 0, // ✅ Lấy từ map, fallback 0
       createdAt: map['createdAt'] is Timestamp
           ? (map['createdAt'] as Timestamp).toDate()
           : DateTime.parse(
@@ -44,7 +46,6 @@ class User {
           UserSettings.fromMap(map['settings'] as Map<String, dynamic>? ?? {}),
     );
   }
-
   factory User.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data['id'] = doc.id;
@@ -58,6 +59,7 @@ class User {
       'experience': experience,
       'totalReadChapters': totalReadChapters,
       'premium': premium,
+      'mangaCoin': mangaCoin, // ✅ Lưu vào Firestore
       'createdAt': Timestamp.fromDate(createdAt),
       'lastLogin': Timestamp.fromDate(lastLogin),
       'settings': settings.toMap(),
@@ -71,6 +73,7 @@ class User {
     int? experience,
     int? totalReadChapters,
     bool? premium,
+    int? mangaCoin, // ✅ Thêm vào copyWith
     DateTime? createdAt,
     DateTime? lastLogin,
     UserSettings? settings,
@@ -82,15 +85,11 @@ class User {
       experience: experience ?? this.experience,
       totalReadChapters: totalReadChapters ?? this.totalReadChapters,
       premium: premium ?? this.premium,
+      mangaCoin: mangaCoin ?? this.mangaCoin,
       createdAt: createdAt ?? this.createdAt,
       lastLogin: lastLogin ?? this.lastLogin,
       settings: settings ?? this.settings,
     );
-  }
-
-  @override
-  String toString() {
-    return 'User(id: $id, email: $email, username: $username)';
   }
 }
 

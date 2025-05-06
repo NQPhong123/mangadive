@@ -4,7 +4,6 @@ import 'package:mangadive/controllers/post_controller.dart';
 import 'package:mangadive/view/widgets/post/post_item.dart';
 import 'package:mangadive/view/screens/post/post_detail_screen.dart';
 import 'package:mangadive/view/screens/post/create_post_screen.dart';
-import 'package:mangadive/models/manga.dart';
 
 class PostList extends StatefulWidget {
   final String currentUserId;
@@ -54,10 +53,12 @@ class _PostListState extends State<PostList> {
     setState(() => _isLoading = true);
 
     try {
-      final posts = await _postController.getAllPosts(
-        limit: 10,
-        lastPostId: _lastPostId,
-      ).first;
+      final posts = await _postController
+          .getAllPosts(
+            limit: 10,
+            lastPostId: _lastPostId,
+          )
+          .first;
 
       if (mounted) {
         setState(() {
@@ -180,4 +181,4 @@ class _PostListState extends State<PostList> {
       },
     );
   }
-} 
+}

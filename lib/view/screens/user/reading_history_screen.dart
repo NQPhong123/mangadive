@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:intl/intl.dart';
 import 'package:mangadive/controllers/manga_controller.dart';
 import 'package:mangadive/services/reading_history_service.dart';
@@ -27,7 +27,7 @@ class _ReadingHistoryScreenState extends State<ReadingHistoryScreen> {
 
   Future<void> _loadHistories() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final histories = await _historyService.getReadingHistory();
       if (mounted) {
@@ -67,20 +67,22 @@ class _ReadingHistoryScreenState extends State<ReadingHistoryScreen> {
                   itemBuilder: (context, index) {
                     final history = _histories[index];
                     final mangaId = history['mangaId'] as String;
-                    final lastReadChapter = history['lastReadChapter'] as Map<String, dynamic>;
+                    final lastReadChapter =
+                        history['lastReadChapter'] as Map<String, dynamic>;
                     final chapterNumber = lastReadChapter['chapterNumber'];
                     final readAt = lastReadChapter['readAt'] as Timestamp;
                     final totalChapters = history['totalReadChapters'] as int;
-                    
+
                     return FutureBuilder(
                       future: _mangaController.getManga(mangaId),
                       builder: (context, snapshot) {
-                        final mangaTitle = snapshot.hasData 
-                            ? snapshot.data!.title 
+                        final mangaTitle = snapshot.hasData
+                            ? snapshot.data!.title
                             : 'Đang tải...';
-                            
+
                         return ListTile(
-                          leading: snapshot.hasData && snapshot.data!.coverImage.isNotEmpty
+                          leading: snapshot.hasData &&
+                                  snapshot.data!.coverImage.isNotEmpty
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(4),
                                   child: Image.network(
@@ -132,4 +134,4 @@ class _ReadingHistoryScreenState extends State<ReadingHistoryScreen> {
       ),
     );
   }
-} 
+}

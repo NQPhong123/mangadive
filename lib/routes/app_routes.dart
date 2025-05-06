@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:mangadive/view/screens/user/login_screen.dart';
-import 'package:mangadive/view/screens/home/home_screen.dart';
+
 import 'package:mangadive/view/screens/user/forgot_password_screen.dart';
 import 'package:mangadive/view/screens/user/account_screen.dart';
 import 'package:mangadive/view/screens/user/register_screen.dart';
 import 'package:mangadive/view/screens/main_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_detail_screen.dart';
 import 'package:mangadive/view/screens/manga/manga_read_screen.dart';
-import 'package:mangadive/view/screens/user/notification_screen.dart';
+
 import 'package:mangadive/view/screens/community/community_screen.dart';
 import 'package:mangadive/view/screens/post/post_detail_screen.dart';
 import 'package:mangadive/view/screens/post/create_post_screen.dart';

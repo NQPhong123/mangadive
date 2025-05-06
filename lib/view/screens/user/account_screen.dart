@@ -1,13 +1,12 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mangadive/controllers/auth_controller.dart';
-import 'package:mangadive/models/user.dart' as models;
-import 'package:mangadive/services/auth_service.dart';
 import 'package:mangadive/view/screens/user/edit_profile_screen.dart';
+import 'package:mangadive/view/screens/user/mangacoin_purchase_screen.dart';
+import 'package:mangadive/view/screens/user/premium_screen.dart';
 import 'package:mangadive/view/screens/user/reading_history_screen.dart';
 import 'package:mangadive/view/screens/user/change_password_screen.dart';
-import 'package:provider/provider.dart';
 import 'package:mangadive/view/screens/user/notification_screen.dart';
+import 'package:provider/provider.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
@@ -19,101 +18,134 @@ class AccountScreen extends StatelessWidget {
         final user = authController.currentUser;
         final userProfile = authController.userProfile;
 
-        if (user == null) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Tài khoản'), centerTitle: true),
-            body: ListView(
-              children: [
-                const UserAccountsDrawerHeader(
-                  accountName: Text('Khách'),
-                  accountEmail: Text('Cấp 1'),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.login),
-                  title: const Text('Đăng nhập'),
-                  onTap: () {
-                    Navigator.pushNamed(context, '/login');
-                  },
-                ),
-              ],
-            ),
-          );
-        }
+        final isLoggedIn = user != null;
+        final username = isLoggedIn
+            ? userProfile?.username ?? user.displayName ?? ''
+            : 'Khách';
+        final mangaCoin = isLoggedIn ? (userProfile?.mangaCoin ?? 0) : 0;
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Tài khoản'), centerTitle: true),
-          body: ListView(
-            children: [
-              UserAccountsDrawerHeader(
-                accountName: Text(userProfile?.username ?? user.displayName ?? ''),
-                accountEmail: const Text('Cấp 1'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.person),
-                title: const Text('Thông tin tài khoản'),
-                onTap: () {
-                  if (userProfile != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditProfileScreen(user: userProfile),
-                      ),
-                    );
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.history),
-                title: const Text('Lịch sử đọc truyện'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ReadingHistoryScreen(),
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            title: const Text('Tài khoản'),
+            centerTitle: true,
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            elevation: 0.5,
+          ),
+          body: Container(
+            color: Colors.white,
+            child: ListView(
+              children: [
+                UserAccountsDrawerHeader(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                  ),
+                  accountName: Text(
+                    username,
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.account_balance_wallet),
-                title: const Text('Linh thạch'),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: const Icon(Icons.notifications),
-                title: const Text('Thông báo của bạn'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const NotificationScreen(),
+                  ),
+                  accountEmail: Text(
+                    'MangaCoin: $mangaCoin MC',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
                     ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.lock),
-                title: const Text('Đổi mật khẩu'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.description),
-                title: const Text('Điều khoản sử dụng'),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: const Icon(Icons.exit_to_app),
-                title: const Text('Đăng xuất'),
-                onTap: () {
-                  authController.signOut(context);
-                },
-              ),
-            ],
+                  ),
+                ),
+                if (!isLoggedIn)
+                  ListTile(
+                    leading: const Icon(Icons.login, color: Colors.black),
+                    title: const Text('Đăng nhập'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/login');
+                    },
+                  )
+                else ...[
+                  ListTile(
+                    leading: const Icon(Icons.person, color: Colors.black),
+                    title: const Text('Thông tin tài khoản'),
+                    onTap: () {
+                      if (userProfile != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                EditProfileScreen(user: userProfile),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.history, color: Colors.black),
+                    title: const Text('Lịch sử đọc truyện'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ReadingHistoryScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.account_balance_wallet,
+                        color: Colors.black),
+                    title: const Text('Đăng ký premium'),
+                    onTap: () {
+                      PremiumBottomSheet.show(context);
+                    },
+                  ),
+                  ListTile(
+                    leading:
+                        const Icon(Icons.notifications, color: Colors.black),
+                    title: const Text('Thông báo của bạn'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.lock, color: Colors.black),
+                    title: const Text('Đổi mật khẩu'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ChangePasswordScreen()),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.add_card, color: Colors.black),
+                    title: const Text('Mua MangaCoin'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => MangaCoinPurchaseScreen()),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.exit_to_app, color: Colors.black),
+                    title: const Text('Đăng xuất'),
+                    onTap: () {
+                      authController.signOut(context);
+                    },
+                  ),
+                ],
+              ],
+            ),
           ),
         );
       },

@@ -5,7 +5,7 @@ import 'package:mangadive/constants/app_constants.dart';
 import 'package:mangadive/utils/string_utils.dart';
 import 'package:mangadive/services/firebase_service.dart';
 import 'package:mangadive/services/reading_history_service.dart';
-import 'package:mangadive/view/screens/manga/manga_detail_screen.dart';
+
 import 'package:mangadive/controllers/comment_controller.dart';
 import 'package:mangadive/models/comment.dart';
 import 'package:mangadive/view/widgets/comment/comment_item.dart';
