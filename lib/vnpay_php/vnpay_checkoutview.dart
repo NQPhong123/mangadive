@@ -24,15 +24,28 @@ class _VnpayCheckoutPageState extends State<VnpayCheckoutPage> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (_) {/* you can show a loader */},
-          onPageFinished: (_) {/* hide loader */},
           onNavigationRequest: (req) {
-            // optionally intercept certain URLs
+            final url = req.url;
+            if (url.contains('vnpay_return.php')) {
+              // parse query params
+              final uri = Uri.parse(url);
+              final responseCode = uri.queryParameters['vnp_ResponseCode'];
+              final orderId = uri.queryParameters['vnp_TxnRef'];
+
+              if (responseCode == '00') {
+                Navigator.of(context)
+                    .pop({'status': 'success', 'orderId': orderId});
+              } else {
+                Navigator.of(context)
+                    .pop({'status': 'fail', 'orderId': orderId});
+              }
+              return NavigationDecision.prevent; // stop loading in WebView
+            }
             return NavigationDecision.navigate;
           },
         ),
       )
-      ..loadRequest(Uri.parse(widget.payUrl)); // load your payUrl
+      ..loadRequest(Uri.parse(widget.payUrl));
 
     // 2) Listen for deep-link callbacks
     final appLinks = AppLinks();

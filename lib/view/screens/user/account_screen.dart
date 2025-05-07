@@ -98,7 +98,8 @@ class AccountScreen extends StatelessWidget {
                         color: Colors.black),
                     title: const Text('Đăng ký premium'),
                     onTap: () {
-                      PremiumBottomSheet.show(context);
+                      PremiumBottomSheet.show(context, authController);
+                      ;
                     },
                   ),
                   ListTile(
@@ -132,7 +133,9 @@ class AccountScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => MangaCoinPurchaseScreen()),
+                          builder: (context) => MangaCoinPurchaseScreen(
+                              authController: authController),
+                        ),
                       );
                     },
                   ),

@@ -144,14 +144,14 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> signIn(String email, String password, BuildContext context) async {
+  Future<void> signIn(
+      String email, String password, BuildContext context) async {
     try {
       _isLoading = true;
       notifyListeners();
 
       await _authService.signIn(email, password);
       Navigator.pushReplacementNamed(context, '/');
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString())),
@@ -162,14 +162,14 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  Future<void> signUp(String email, String password, String username, BuildContext context) async {
+  Future<void> signUp(String email, String password, String username,
+      BuildContext context) async {
     try {
       _isLoading = true;
       notifyListeners();
 
       await _authService.signUpUser(email, password, username);
       Navigator.pushReplacementNamed(context, '/');
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString())),
@@ -187,7 +187,6 @@ class AuthController extends ChangeNotifier {
 
       await _authService.updateUser(updatedUser);
       _userProfile = updatedUser;
-
     } catch (e) {
       rethrow;
     } finally {
@@ -196,18 +195,23 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  Future<void> changePassword(String currentPassword, String newPassword) async {
+  Future<void> changePassword(
+      String currentPassword, String newPassword) async {
     try {
       _isLoading = true;
       notifyListeners();
 
       await _authService.changePassword(currentPassword, newPassword);
-
     } catch (e) {
       rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> reloadUserProfile() async {
+    _logger.info('Reload user profile...');
+    await _loadUserProfile();
   }
 }

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class VNPayService {
   final _createUrl = Uri.parse(
-    'https://32ce-123-21-101-235.ngrok-free.app/vnpay_php/vnpay_create_payment.php',
+    'https://90bb-123-21-207-17.ngrok-free.app/vnpay_php/vnpay_create_payment.php',
   );
 
   Future<String> createOrder(String orderId, int amount) async {

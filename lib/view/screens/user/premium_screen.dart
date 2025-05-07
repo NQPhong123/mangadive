@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mangadive/controllers/auth_controller.dart';
 
 class PremiumBottomSheet {
-  static void show(BuildContext context) {
+  static void show(BuildContext context, AuthController authController) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.black,
@@ -10,13 +13,17 @@ class PremiumBottomSheet {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return _PremiumOptionsSheet();
+        return _PremiumOptionsSheet(authController: authController);
       },
     );
   }
 }
 
 class _PremiumOptionsSheet extends StatefulWidget {
+  final AuthController authController;
+
+  const _PremiumOptionsSheet({required this.authController});
+
   @override
   State<_PremiumOptionsSheet> createState() => _PremiumOptionsSheetState();
 }
@@ -78,6 +85,79 @@ class _PremiumOptionsSheetState extends State<_PremiumOptionsSheet> {
     );
   }
 
+  Future<void> _handleSubscription() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không tìm thấy thông tin người dùng')),
+      );
+      return;
+    }
+
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(userId);
+    final snapshot = await userDoc.get();
+    if (!snapshot.exists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tài khoản không tồn tại')),
+      );
+      return;
+    }
+
+    final userData = snapshot.data()!;
+    int currentMC = userData['mangaCoin'] ?? 0;
+    Timestamp? currentPremiumExpireAtTS = userData['premiumExpireAt'];
+    DateTime now = DateTime.now();
+    DateTime currentExpire = currentPremiumExpireAtTS != null
+        ? currentPremiumExpireAtTS.toDate().isAfter(now)
+            ? currentPremiumExpireAtTS.toDate()
+            : now
+        : now;
+
+    int cost = 0;
+    Duration duration = Duration.zero;
+
+    if (selectedPlan == '1 Tháng') {
+      cost = 10;
+      duration = const Duration(days: 30);
+    } else if (selectedPlan == '3 tháng' || selectedPlan == '3 Tháng') {
+      cost = 25;
+      duration = const Duration(days: 90);
+    } else if (selectedPlan == '1 năm' || selectedPlan == '1 Năm') {
+      cost = 100;
+      duration = const Duration(days: 365);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gói không hợp lệ')),
+      );
+      return;
+    }
+
+    if (currentMC < cost) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bạn không đủ MangaCoin')),
+      );
+      return;
+    }
+
+    final newExpire = currentExpire.add(duration);
+    final newMC = currentMC - cost;
+
+    await userDoc.update({
+      'mangaCoin': newMC,
+      'premium': true,
+      'premiumExpireAt': Timestamp.fromDate(newExpire),
+    });
+
+    // Gọi reloadUserProfile() để làm mới thông tin người dùng
+    await widget.authController.reloadUserProfile();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Đăng ký $selectedPlan thành công!')),
+    );
+
+    Navigator.pop(context); // đóng bottom sheet
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -115,11 +195,8 @@ class _PremiumOptionsSheetState extends State<_PremiumOptionsSheet> {
                 minimumSize: const Size(double.infinity, 50),
               ),
               label: const Text('Đăng ký'),
-              onPressed: () {
-                // TODO: Xử lý đăng ký với selectedPlan
-                print('Gói đã chọn: $selectedPlan');
-                Navigator.pop(context); // đóng bottom sheet sau khi chọn
-              },
+              icon: const Icon(Icons.check),
+              onPressed: _handleSubscription,
             ),
           ],
         ),

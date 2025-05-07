@@ -1,10 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mangadive/controllers/auth_controller.dart';
 import 'package:mangadive/vnpay_php/vnpay_checkoutview.dart';
 import 'package:mangadive/vnpay_php/vnpay_service.dart';
 
 class MangaCoinPurchaseScreen extends StatefulWidget {
-  const MangaCoinPurchaseScreen({Key? key}) : super(key: key);
+  final AuthController authController; // thêm authController
+
+  const MangaCoinPurchaseScreen({Key? key, required this.authController})
+      : super(key: key);
 
   @override
   _MangaCoinPurchaseScreenState createState() =>
@@ -45,19 +51,27 @@ class _MangaCoinPurchaseScreenState extends State<MangaCoinPurchaseScreen> {
     final amount = selectedAmount!;
     final orderId = DateTime.now().millisecondsSinceEpoch.toString();
     try {
-      // tạo URL thanh toán từ backend
       final payUrl = await vnpayService.createOrder(orderId, amount);
-      // mở WebView để thanh toán và chờ kết quả
       final result = await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => VnpayCheckoutPage(payUrl)),
       );
-      // result là Map chứa 'status' và 'orderId'
-      if (result['status'] == 'success') {
+
+      if (result != null && result['status'] == 'success') {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Thanh toán thành công!')),
         );
-        // TODO: gọi backend lấy số MangaCoin mới, update UI
+
+        final earnedMangaCoin = (amount / 1000).floor();
+        final uid = FirebaseAuth.instance.currentUser!.uid;
+
+        final userDoc = FirebaseFirestore.instance.collection('users').doc(uid);
+
+        await userDoc.update({
+          'mangaCoin': FieldValue.increment(earnedMangaCoin),
+        });
+        await widget.authController.reloadUserProfile();
+        // Optional: fetch user mới nếu cần
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Thanh toán không thành công.')),

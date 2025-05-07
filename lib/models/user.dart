@@ -7,10 +7,11 @@ class User {
   final int experience;
   final int totalReadChapters;
   final bool premium;
-  final int mangaCoin; // ✅ Thêm mới
+  final int mangaCoin;
   final DateTime createdAt;
   final DateTime lastLogin;
   final UserSettings settings;
+  final DateTime? premiumExpireAt;
 
   const User({
     required this.id,
@@ -19,10 +20,11 @@ class User {
     this.experience = 0,
     this.totalReadChapters = 0,
     this.premium = false,
-    this.mangaCoin = 0, // ✅ Mặc định 0
+    this.mangaCoin = 0,
     required this.createdAt,
     required this.lastLogin,
     required this.settings,
+    this.premiumExpireAt,
   });
 
   factory User.fromMap(Map<String, dynamic> map) {
@@ -33,7 +35,7 @@ class User {
       experience: map['experience'] as int? ?? 0,
       totalReadChapters: map['totalReadChapters'] as int? ?? 0,
       premium: map['premium'] as bool? ?? false,
-      mangaCoin: map['mangaCoin'] as int? ?? 0, // ✅ Lấy từ map, fallback 0
+      mangaCoin: map['mangaCoin'] as int? ?? 0,
       createdAt: map['createdAt'] is Timestamp
           ? (map['createdAt'] as Timestamp).toDate()
           : DateTime.parse(
@@ -42,10 +44,16 @@ class User {
           ? (map['lastLogin'] as Timestamp).toDate()
           : DateTime.parse(
               map['lastLogin'] as String? ?? DateTime.now().toIso8601String()),
+      premiumExpireAt: map['premiumExpireAt'] is Timestamp // ✅ parse timestamp
+          ? (map['premiumExpireAt'] as Timestamp).toDate()
+          : (map['premiumExpireAt'] != null
+              ? DateTime.tryParse(map['premiumExpireAt'])
+              : null),
       settings:
           UserSettings.fromMap(map['settings'] as Map<String, dynamic>? ?? {}),
     );
   }
+
   factory User.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     data['id'] = doc.id;
@@ -59,9 +67,12 @@ class User {
       'experience': experience,
       'totalReadChapters': totalReadChapters,
       'premium': premium,
-      'mangaCoin': mangaCoin, // ✅ Lưu vào Firestore
+      'mangaCoin': mangaCoin,
       'createdAt': Timestamp.fromDate(createdAt),
       'lastLogin': Timestamp.fromDate(lastLogin),
+      'premiumExpireAt': premiumExpireAt != null // ✅ save timestamp if not null
+          ? Timestamp.fromDate(premiumExpireAt!)
+          : null,
       'settings': settings.toMap(),
     };
   }
@@ -73,10 +84,11 @@ class User {
     int? experience,
     int? totalReadChapters,
     bool? premium,
-    int? mangaCoin, // ✅ Thêm vào copyWith
+    int? mangaCoin,
     DateTime? createdAt,
     DateTime? lastLogin,
     UserSettings? settings,
+    DateTime? premiumExpireAt, // ✅ copyWith
   }) {
     return User(
       id: id ?? this.id,
@@ -89,6 +101,7 @@ class User {
       createdAt: createdAt ?? this.createdAt,
       lastLogin: lastLogin ?? this.lastLogin,
       settings: settings ?? this.settings,
+      premiumExpireAt: premiumExpireAt ?? this.premiumExpireAt,
     );
   }
 }
