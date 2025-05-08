@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:mangadive/routes/app_routes.dart';
 import 'package:mangadive/constants/app_constants.dart';
 import 'package:mangadive/controllers/auth_controller.dart';
+import 'package:mangadive/services/ad_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,9 +30,13 @@ void main() async {
       appleProvider: AppleProvider.debug,
     );
 
-    logger.info('Firebase initialized successfully');
+    // Initialize AdMob
+    await AdService().initialize();
+    await AdService().loadInterstitialAd();
+
+    logger.info('Firebase and AdMob initialized successfully');
   } catch (e) {
-    logger.severe('Failed to initialize Firebase: $e');
+    logger.severe('Failed to initialize Firebase or AdMob: $e');
   }
 
   runApp(const MyApp());
@@ -51,6 +56,10 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _initDynamicLinks();
+    // Đợi app load xong rồi mới hiển thị quảng cáo
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showInitialAd();
+    });
   }
 
   void _initDynamicLinks() async {
@@ -81,6 +90,17 @@ class _MyAppState extends State<MyApp> {
     if (action == 'mangacoin' && uid != null) {
       // Xử lý điều hướng tới màn hình nạp coin hoặc hiển thị thông báo
       Navigator.pushNamed(context, '/topup', arguments: {'uid': uid});
+    }
+  }
+
+  Future<void> _showInitialAd() async {
+    try {
+      logger.info('Attempting to show initial ad...');
+      // Đợi 2 giây để đảm bảo app đã load xong
+      await Future.delayed(const Duration(seconds: 2));
+      await AdService().showInterstitialAd();
+    } catch (e) {
+      logger.severe('Error showing initial ad: $e');
     }
   }
 

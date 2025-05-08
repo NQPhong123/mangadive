@@ -7,8 +7,7 @@ import 'package:mangadive/constants/app_constants.dart';
 import 'package:mangadive/utils/string_utils.dart';
 import 'package:mangadive/view/screens/manga/manga_read_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
-
+import 'package:mangadive/services/ad_service.dart';
 
 class MangaDetailScreen extends StatefulWidget {
   final String mangaId;
@@ -44,11 +43,12 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
 
       if (manga != null) {
         print('Loaded manga: ${manga.title}');
-        
+
         // Kiểm tra trạng thái follow
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
-          _isFollowing = await _mangaController.isFollowingManga(user.uid, manga.id);
+          _isFollowing =
+              await _mangaController.isFollowingManga(user.uid, manga.id);
           print('Follow status: $_isFollowing');
         }
 
@@ -78,20 +78,25 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
     }
   }
 
-  void _readManga(int chapterNumber) {
+  void _readManga(int chapterNumber) async {
     final user = FirebaseAuth.instance.currentUser;
     final userId = user?.uid ?? 'anonymous_user';
-    
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MangaReadScreen(
-          mangaId: _manga!.id,
-          chapterId: chapterNumber.toString(),
-          currentUserId: userId,
+
+    // Hiển thị quảng cáo trước khi đọc manga
+    await AdService().showInterstitialAd();
+
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MangaReadScreen(
+            mangaId: _manga!.id,
+            chapterId: chapterNumber.toString(),
+            currentUserId: userId,
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   void _toggleFollow() async {

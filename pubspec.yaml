@@ -56,8 +56,9 @@ dependencies:
   uuid: ^3.0.7
   url_launcher: ^6.1.7
   http: ^1.0.0
-  webview_flutter: ^4.11.0
+  webview_flutter: ^4.9.0
   app_links: ^6.4.0
+  google_mobile_ads: ^6.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
