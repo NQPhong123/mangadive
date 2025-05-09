@@ -67,8 +67,7 @@ class AuthController extends ChangeNotifier {
         if (context.mounted) {
           Navigator.pushReplacementNamed(
             context,
-            AppRoutes.account,
-            arguments: {'initialIndex': 0},
+            AppRoutes.mainScreen,
           );
         }
       } else {
@@ -151,7 +150,7 @@ class AuthController extends ChangeNotifier {
       notifyListeners();
 
       await _authService.signIn(email, password);
-      Navigator.pushReplacementNamed(context, '/');
+      Navigator.pushReplacementNamed(context, AppRoutes.mainScreen);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString())),
@@ -213,5 +212,40 @@ class AuthController extends ChangeNotifier {
   Future<void> reloadUserProfile() async {
     _logger.info('Reload user profile...');
     await _loadUserProfile();
+  }
+
+  Future<void> signInWithGoogle(BuildContext context) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final user = await _authService.signInWithGoogle();
+      if (user != null) {
+        _logger.info('Đăng nhập Google thành công: ${user.email}');
+        if (context.mounted) {
+          Navigator.pushReplacementNamed(
+            context,
+            AppRoutes.mainScreen,
+          );
+        }
+      } else {
+        _logger.warning('Đăng nhập Google thất bại');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Đăng nhập Google thất bại')),
+          );
+        }
+      }
+    } catch (e) {
+      _logger.severe('Lỗi đăng nhập Google: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: $e')),
+        );
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

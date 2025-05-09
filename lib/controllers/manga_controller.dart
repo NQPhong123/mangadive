@@ -26,10 +26,11 @@ class MangaController extends ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
-      
+
       _logger.info('Bắt đầu lấy danh sách truyện phổ biến');
       final mangas = await _firebaseService.getAllManga();
-      popularMangas = mangas..sort((a, b) => b.popularityScore.compareTo(a.popularityScore));
+      popularMangas = mangas
+        ..sort((a, b) => b.popularityScore.compareTo(a.popularityScore));
       if (popularMangas.length > 10) {
         popularMangas = popularMangas.sublist(0, 10);
       }
@@ -47,7 +48,7 @@ class MangaController extends ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
-      
+
       _logger.info('Bắt đầu lấy danh sách truyện mới nhất');
       final mangas = await _firebaseService.getAllManga();
       newestMangas = mangas..sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -68,7 +69,7 @@ class MangaController extends ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
-      
+
       _logger.info('Bắt đầu lấy danh sách thể loại');
       // Tạm thời tạo các thể loại mẫu
       categories = [
@@ -108,16 +109,16 @@ class MangaController extends ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
-      
+
       _logger.info('Bắt đầu lấy thông tin truyện với ID: $id');
       currentManga = await _firebaseService.getManga(id);
-      
+
       if (currentManga != null) {
         _logger.info('Đã lấy được thông tin truyện: ${currentManga!.title}');
       } else {
         _logger.warning('Không tìm thấy truyện với ID: $id');
       }
-      
+
       return currentManga;
     } catch (e) {
       _logger.severe('Lỗi khi lấy thông tin truyện: $e');
@@ -133,13 +134,13 @@ class MangaController extends ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
-      
+
       _logger.info('Bắt đầu lấy danh sách chapter của truyện: $mangaId');
       final chapters = await _firebaseService.getMangaChapters(mangaId);
       chapters.sort((a, b) => a.chapterNumber.compareTo(b.chapterNumber));
 
       _logger.info('Đã lấy được ${chapters.length} chapter');
-      
+
       return chapters;
     } catch (e) {
       _logger.severe('Lỗi khi lấy danh sách chapter: $e');
@@ -155,18 +156,21 @@ class MangaController extends ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
-      
-      _logger.info('Bắt đầu lấy thông tin chapter $chapterNumber của truyện $mangaId');
+
+      _logger.info(
+          'Bắt đầu lấy thông tin chapter $chapterNumber của truyện $mangaId');
       // Chuyển chapterNumber sang String vì API getMangaChapter nhận chapterId dạng String
       final chapterId = chapterNumber.toString();
-      currentChapter = await _firebaseService.getMangaChapter(mangaId, chapterId);
-      
+      currentChapter =
+          await _firebaseService.getMangaChapter(mangaId, chapterId);
+
       if (currentChapter != null) {
-        _logger.info('Đã lấy được thông tin chapter: ${currentChapter!.chapterNumber}');
+        _logger.info(
+            'Đã lấy được thông tin chapter: ${currentChapter!.chapterNumber}');
       } else {
         _logger.warning('Không tìm thấy chapter $chapterNumber');
       }
-      
+
       return currentChapter;
     } catch (e) {
       _logger.severe('Lỗi khi lấy thông tin chapter: $e');
@@ -180,12 +184,14 @@ class MangaController extends ChangeNotifier {
   // Theo dõi truyện
   Future<void> followManga(String userId, String mangaId) async {
     try {
-      final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+      final userRef =
+          FirebaseFirestore.instance.collection('users').doc(userId);
       final followsRef = userRef.collection('follows').doc(mangaId);
-      
+
       final follow = Follow(
         mangaId: mangaId,
-        lastReadChapter: ChapterProgress(chapterNumber: 0, readAt: DateTime.now()),
+        lastReadChapter:
+            ChapterProgress(chapterNumber: 0, readAt: DateTime.now()),
         totalReadChapters: 0,
         totalReadingTime: 0,
         lastReadAt: DateTime.now(),
@@ -193,7 +199,7 @@ class MangaController extends ChangeNotifier {
       );
 
       await followsRef.set(follow.toMap());
-      
+
       // Update manga's total followers
       await FirebaseFirestore.instance
           .collection('mangas')
@@ -210,11 +216,12 @@ class MangaController extends ChangeNotifier {
   // Hủy theo dõi truyện
   Future<void> unfollowManga(String userId, String mangaId) async {
     try {
-      final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+      final userRef =
+          FirebaseFirestore.instance.collection('users').doc(userId);
       final followsRef = userRef.collection('follows').doc(mangaId);
-      
+
       await followsRef.delete();
-      
+
       // Update manga's total followers
       await FirebaseFirestore.instance
           .collection('mangas')
@@ -230,9 +237,10 @@ class MangaController extends ChangeNotifier {
 
   Future<bool> isFollowingManga(String userId, String mangaId) async {
     try {
-      final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+      final userRef =
+          FirebaseFirestore.instance.collection('users').doc(userId);
       final followsRef = userRef.collection('follows').doc(mangaId);
-      
+
       final doc = await followsRef.get();
       return doc.exists;
     } catch (e) {
@@ -244,13 +252,14 @@ class MangaController extends ChangeNotifier {
   Future<List<Follow>> getUserFollows(String userId) async {
     try {
       _logger.info('Bắt đầu lấy danh sách follows cho user: $userId');
-      
-      final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+
+      final userRef =
+          FirebaseFirestore.instance.collection('users').doc(userId);
       final followsRef = userRef.collection('follows');
-      
+
       final querySnapshot = await followsRef.get();
       _logger.info('Số lượng follows: ${querySnapshot.docs.length}');
-      
+
       final follows = querySnapshot.docs.map((doc) {
         try {
           return Follow.fromFirestore(doc);
@@ -260,7 +269,7 @@ class MangaController extends ChangeNotifier {
           rethrow;
         }
       }).toList();
-      
+
       _logger.info('Đã lấy được ${follows.length} follows');
       return follows;
     } catch (e) {
@@ -270,12 +279,13 @@ class MangaController extends ChangeNotifier {
   }
 
   // Đánh giá truyện - Hiện chưa có phương thức tương ứng trong FirebaseService
-  Future<void> rateManga(String userId, String mangaId, int rating, {String? review}) async {
+  Future<void> rateManga(String userId, String mangaId, int rating,
+      {String? review}) async {
     try {
       _logger.info('Bắt đầu đánh giá truyện: $mangaId với điểm $rating');
       // Tạm thời không có phương thức rateManga trong FirebaseService
       _logger.info('Đã đánh giá truyện thành công');
-      
+
       // Cập nhật lại thông tin truyện hiện tại
       if (currentManga != null && currentManga!.id == mangaId) {
         await getManga(mangaId);
@@ -295,8 +305,10 @@ class MangaController extends ChangeNotifier {
     int readingTime,
   ) async {
     try {
-      _logger.info('Bắt đầu cập nhật lịch sử đọc truyện: $mangaId, chapter: $chapterNumber');
-      await _firebaseService.updateReadingHistory(mangaId, chapterNumber.toString());
+      _logger.info(
+          'Bắt đầu cập nhật lịch sử đọc truyện: $mangaId, chapter: $chapterNumber');
+      await _firebaseService.updateReadingHistory(
+          mangaId, chapterNumber.toString());
       _logger.info('Đã cập nhật lịch sử đọc thành công');
     } catch (e) {
       _logger.severe('Lỗi khi cập nhật lịch sử đọc: $e');
@@ -309,17 +321,18 @@ class MangaController extends ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
-      
+
       _logger.info('Bắt đầu tìm kiếm truyện với từ khóa: $query');
       // Hiện chưa có phương thức tìm kiếm, tạm thời lấy tất cả và lọc
       final allMangas = await _firebaseService.getAllManga();
-      final results = allMangas.where((manga) => 
-        manga.title.toLowerCase().contains(query.toLowerCase()) ||
-        manga.description.toLowerCase().contains(query.toLowerCase())
-      ).toList();
-      
+      final results = allMangas
+          .where((manga) =>
+              manga.title.toLowerCase().contains(query.toLowerCase()) ||
+              manga.description.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+
       _logger.info('Đã tìm thấy ${results.length} kết quả');
-      
+
       return results;
     } catch (e) {
       _logger.severe('Lỗi khi tìm kiếm truyện: $e');
@@ -335,16 +348,16 @@ class MangaController extends ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
-      
+
       _logger.info('Bắt đầu lấy danh sách truyện theo thể loại: $categoryId');
       // Hiện chưa có phương thức lấy theo thể loại, tạm thời lấy tất cả và lọc
       final allMangas = await _firebaseService.getAllManga();
-      final results = allMangas.where((manga) => 
-        manga.genres.contains(categoryId)
-      ).toList();
-      
+      final results = allMangas
+          .where((manga) => manga.genres.contains(categoryId))
+          .toList();
+
       _logger.info('Đã tìm thấy ${results.length} truyện');
-      
+
       return results;
     } catch (e) {
       _logger.severe('Lỗi khi lấy truyện theo thể loại: $e');

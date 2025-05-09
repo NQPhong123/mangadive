@@ -1,45 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:mangadive/routes/app_routes.dart';
-import 'package:mangadive/services/auth_service.dart';
-import 'package:logging/logging.dart';
+import 'package:mangadive/controllers/auth_controller.dart';
+import 'package:provider/provider.dart';
 
 class SocialLogin extends StatelessWidget {
   const SocialLogin({super.key});
 
-  static final _logger = Logger('SocialLogin');
-
-  Future<void> _handleGoogleSignIn(BuildContext context) async {
-    try {
-      final user = await AuthService().signInWithGoogle();
-
-      if (!context.mounted) return;
-
-      _logger.info(
-        'Đăng nhập Google thành công: ${user?.email ?? 'Không có email'}',
-      );
-      Navigator.pushReplacementNamed(
-        context,
-        AppRoutes.account,
-        arguments: {'initialIndex': 0},
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      _logger.severe('Lỗi đăng nhập Google: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Lỗi đăng nhập Google: $e')));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final authController = Provider.of<AuthController>(context);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         ElevatedButton.icon(
-          onPressed: () => _handleGoogleSignIn(context),
+          onPressed: authController.isLoading
+              ? null
+              : () => authController.signInWithGoogle(context),
           icon: const Icon(Icons.g_mobiledata),
-          label: const Text('Google'),
+          label: authController.isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Google'),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.white,
             foregroundColor: Colors.black87,

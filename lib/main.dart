@@ -116,6 +116,7 @@ class _MyAppState extends State<MyApp> {
           primarySwatch: Colors.blue,
         ),
         onGenerateRoute: AppRoutes.generateRoute,
+        debugShowCheckedModeBanner: false,
         initialRoute: AppRoutes.initial,
       ),
     );

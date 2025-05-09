@@ -85,16 +85,19 @@ class FirebaseService {
         return [];
       }
 
-      final categories = snapshot.docs.map((doc) {
-        try {
-          print("Processing category document: ${doc.id}");
-          print("Document data: ${doc.data()}");
-          return Category.fromFirestore(doc);
-        } catch (e) {
-          print("Lỗi khi chuyển đổi document ${doc.id}: $e");
-          return null;
-        }
-      }).whereType<Category>().toList();
+      final categories = snapshot.docs
+          .map((doc) {
+            try {
+              print("Processing category document: ${doc.id}");
+              print("Document data: ${doc.data()}");
+              return Category.fromFirestore(doc);
+            } catch (e) {
+              print("Lỗi khi chuyển đổi document ${doc.id}: $e");
+              return null;
+            }
+          })
+          .whereType<Category>()
+          .toList();
 
       print("Đã chuyển đổi thành công ${categories.length} thể loại");
       return categories;
@@ -105,8 +108,7 @@ class FirebaseService {
     }
   }
 
-
-    Future<List<Manga>> getAllManga() async {
+  Future<List<Manga>> getAllManga() async {
     try {
       final snapshot =
           await _firestore.collection(AppConstants.mangasCollection).get();
@@ -167,13 +169,16 @@ class FirebaseService {
       final data = docSnapshot.data()!;
       print('Dữ liệu chapter: $data');
 
-      final pagesData = (data['pages'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
-      final pages = pagesData.map((pageData) => 
-        ChapterPage(
-          imageUrl: pageData['image_url'] ?? '',
-          pageNumber: pageData['page_number'] ?? 0,
-        )
-      ).toList();
+      final pagesData = (data['pages'] as List?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [];
+      final pages = pagesData
+          .map((pageData) => ChapterPage(
+                imageUrl: pageData['image_url'] ?? '',
+                pageNumber: pageData['page_number'] ?? 0,
+              ))
+          .toList();
 
       return Chapter(
         id: docSnapshot.id,
@@ -207,13 +212,16 @@ class FirebaseService {
         final data = doc.data();
         print('Chapter ${doc.id} data: $data');
 
-        final pagesData = (data['pages'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
-        final pages = pagesData.map((pageData) => 
-          ChapterPage(
-            imageUrl: pageData['image_url'] ?? '',
-            pageNumber: pageData['page_number'] ?? 0,
-          )
-        ).toList();
+        final pagesData = (data['pages'] as List?)
+                ?.map((e) => Map<String, dynamic>.from(e as Map))
+                .toList() ??
+            [];
+        final pages = pagesData
+            .map((pageData) => ChapterPage(
+                  imageUrl: pageData['image_url'] ?? '',
+                  pageNumber: pageData['page_number'] ?? 0,
+                ))
+            .toList();
 
         return Chapter(
           id: doc.id,

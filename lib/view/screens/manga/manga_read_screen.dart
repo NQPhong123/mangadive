@@ -72,8 +72,8 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
     try {
       setState(() => _isLoading = true);
 
-      final chapter =
-          await _mangaController.getChapter(widget.mangaId, int.parse(_currentChapterId));
+      final chapter = await _mangaController.getChapter(
+          widget.mangaId, int.parse(_currentChapterId));
 
       if (chapter != null) {
         final List<String> pages =
@@ -327,7 +327,8 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
                           child: Column(
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   const Text(
                                     'Bình luận',
@@ -370,7 +371,8 @@ class _MangaReadScreenState extends State<MangaReadScreen> {
                                           comment: comment,
                                           currentUserId: widget.currentUserId,
                                           onReply: (commentId) {
-                                            _handleReply(commentId, comment.userId);
+                                            _handleReply(
+                                                commentId, comment.userId);
                                           },
                                         );
                                       },

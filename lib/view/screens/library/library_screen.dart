@@ -5,6 +5,7 @@ import 'package:mangadive/controllers/manga_controller.dart';
 import 'package:mangadive/models/manga.dart';
 import 'package:mangadive/models/follow.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:mangadive/routes/app_routes.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({Key? key}) : super(key: key);
@@ -27,7 +28,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Future<void> _loadFollowedMangas() async {
     try {
       setState(() => _isLoading = true);
-      
+
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         print('User chưa đăng nhập');
@@ -41,10 +42,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
       print('Bắt đầu load follows cho user: ${user.uid}');
       final follows = await _mangaController.getUserFollows(user.uid);
       print('Số lượng follows: ${follows.length}');
-      
+
       final mangaIds = follows.map((f) => f.mangaId).toList();
       print('Danh sách mangaId: $mangaIds');
-      
+
       if (mangaIds.isEmpty) {
         print('Không có manga nào được follow');
         setState(() {
@@ -101,7 +102,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       const SizedBox(height: 8),
                       TextButton.icon(
                         onPressed: () {
-                          // TODO: Navigate to manga list
+                          Navigator.pushReplacementNamed(
+                            context,
+                            AppRoutes.mainScreen,
+                          );
                         },
                         icon: const Icon(Icons.explore),
                         label: const Text('Khám phá truyện'),
@@ -158,7 +162,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Widget _buildMangaCard(Manga manga) {
     return GestureDetector(
       onTap: () {
-        // TODO: Navigate to manga detail
+        Navigator.pushNamed(
+          context,
+          AppRoutes.mangaDetail,
+          arguments: {'mangaId': manga.id},
+        );
       },
       child: Card(
         clipBehavior: Clip.antiAlias,
@@ -205,4 +213,4 @@ class _LibraryScreenState extends State<LibraryScreen> {
       ),
     );
   }
-} 
+}
